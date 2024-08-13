@@ -27,16 +27,14 @@ void init_executor() {
 // -----------------------------------------------
 
 int main(int argc, char *argv[]) {
-    if (argc != 4) {
-        DPRINTF("Usage a.out <fs> <loop-dev> <workspace>\n");
+    if (argc != 2) {
+        DPRINTF("USAGE: CMD <workspace>\n");
         exit(0);
     }
 
-    const char *fs = argv[1];
-    const char *dev = argv[2];
-    g_workspace = argv[3];
+    g_workspace = argv[1];
     if (!g_workspace) {
-        DPRINTF("Workspace is NULL\n");
+        DPRINTF("ERROR: workspace is NULL\n");
         exit(0);
     }
 
