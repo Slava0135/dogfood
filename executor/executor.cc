@@ -4,7 +4,7 @@
 
 #include "utils.h"
 
-const char *g_workspace = NULL;
+const char *g_workspace = nullptr;
 char* g_buffers[NR_BUF];
 
 
@@ -87,12 +87,12 @@ void *flush_daemon(void *arg) {
 }
 
 void start_daemon() {
-    pthread_create(&daemon_thread, NULL, flush_daemon, NULL);
+    pthread_create(&daemon_thread, nullptr, flush_daemon, nullptr);
 }
 
 void stop_daemon() {
     running = 0;
-    pthread_join(daemon_thread, NULL);
+    pthread_join(daemon_thread, nullptr);
 }
 
 // -----------------------------------------------

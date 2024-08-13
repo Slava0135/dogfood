@@ -128,7 +128,7 @@ DEF_FUNC(hardlink, const char *old_path, const char *new_path) {
 
 static int remove_dir(const char *path) {
     DIR *d = opendir(path);
-    size_t path_len = strlen(path);
+    std::size_t path_len = strlen(path);
     int r = -1;
 
     if (d) {
@@ -138,7 +138,7 @@ static int remove_dir(const char *path) {
         while (!r && (p = readdir(d))) {
             int r2 = -1;
             char *buf;
-            size_t len;
+            std::size_t len;
 
             /* Skip the names "." and ".." as we don't want to recurse on them.
              */
@@ -489,7 +489,7 @@ DEF_FUNC_NOARGS(remount_root) {
     // snprintf(cmd, 1024, "mount %s %s -o \"remount,%s\"", dev, g_workspace, option);
     DPRINTF("REMOUNT (line: %d) %s: with [remount,%s]\n", line, fs, option);
 
-    int status = mount(NULL, g_workspace, NULL, MS_REMOUNT, option);
+    int status = mount(nullptr, g_workspace, nullptr, MS_REMOUNT, option);
     if (status) {
         FAILURE_REPORT("REMOUNT_ROOT", option);
     }
@@ -551,10 +551,10 @@ DEF_FUNC(concurrent, seq_func_t do_syscall_1, seq_func_t do_syscall_2) {
     // So, the syscall_1 failure means SEQ_2; otherwise, the SEQ_1 executes.
     //
     pthread_t child_thread;
-    pthread_create(&child_thread, NULL, worker, (void*)do_syscall_2);
+    pthread_create(&child_thread, nullptr, worker, (void*)do_syscall_2);
 
     int status = do_syscall_1();
-    pthread_join(child_thread, NULL);
+    pthread_join(child_thread, nullptr);
     return status == 0;
 }
 

@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <sched.h>
+#include <cstddef>
 
 #include "executor.h"
 
@@ -13,8 +14,8 @@
 //
 #define ALIGN 4096
 
-void* align_alloc(size_t size) {
-    void *ptr = NULL;
+void* align_alloc(std::size_t size) {
+    void *ptr = nullptr;
     int ret = posix_memalign(&ptr, ALIGN, size);
     if (ret) {
       DPRINTF("** %s\n", strerror(errno));
@@ -38,10 +39,10 @@ char *str_replace(const char *orig, const char *rep, const char *with) {
 
     // sanity checks and initialization
     if (!orig || !rep)
-        return NULL;
+        return nullptr;
     len_rep = strlen(rep);
     if (len_rep == 0)
-        return NULL; // empty rep causes infinite loop during count
+        return nullptr; // empty rep causes infinite loop during count
     if (!with)
         with = "";
     len_with = strlen(with);
@@ -55,7 +56,7 @@ char *str_replace(const char *orig, const char *rep, const char *with) {
     tmp = result = (char*)malloc(strlen(orig) + (len_with - len_rep) * count + 1);
 
     if (!result)
-        return NULL;
+        return nullptr;
 
     // first time through the loop, all the variable are set correctly
     // from here on,
@@ -82,9 +83,9 @@ const char* str_concat(const char *str_1, const char *str_2) {
     }
 
     char *new_str = (char*)malloc(strlen(str_1) + strlen(str_2) + 1);
-    if(new_str == NULL){
+    if(new_str == nullptr){
         DPRINTF("Malloc failed!\n");
-        return NULL;
+        return nullptr;
     }
     //
     // ensures the memory is an empty string
@@ -118,7 +119,7 @@ const char* str_format(char* fmt, ...) {
     if (len >= BUF_LEN) {
         fprintf(stderr, "Format failure: too long\n");
         free(buf);
-        return NULL;
+        return nullptr;
     }
 
     va_end(vl);
@@ -148,27 +149,27 @@ char* path_join(const char *prefix, const char *file_name) {
     if (ret == len) {
         free(buf);
         DPRINTF("PATH_JOIN failure\n");
-        return NULL;
+        return nullptr;
     } else {
         buf[ret] = '\0';
     }
     return buf;
 }
 
-char* rand_string(size_t len) {
+char* rand_string(std::size_t len) {
     static char charset[] = "abcdefghijklmnopqrstuvwxyz"
                             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                             "0123456789";
     if (!len) {
-        return NULL;
+        return nullptr;
     }
 
     char *buf = (char*)align_alloc(len + 1);
     if (!buf) {
-        return NULL;
+        return nullptr;
     }
 
-    for (size_t i = 0; i < len; i++) {
+    for (std::size_t i = 0; i < len; i++) {
         int key = rand() % (int) (sizeof(charset) -1);
         buf[i] = charset[key];
     }
@@ -179,7 +180,7 @@ char* rand_string(size_t len) {
 
 const char* exec_command(const char *cmd) {
 
-    char *result = NULL;
+    char *result = nullptr;
     char buf[128];
 
     FILE* fp = popen(cmd, "r");
@@ -188,7 +189,7 @@ const char* exec_command(const char *cmd) {
         exit(1);
     }
 
-    while (fgets(buf, sizeof(buf), fp) != NULL) {
+    while (fgets(buf, sizeof(buf), fp) != nullptr) {
         result = (char*)str_concat(result, buf);
     }
     pclose(fp);
