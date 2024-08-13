@@ -48,6 +48,9 @@ def build_testcases(path, testcases):
         if ret != 0:
             M4.print_red(f'BUILD ERROR')
             return
+    M4.print_cyan(f'Removing build files...')
+    for f in glob.glob("*.h") + glob.glob("*.cc") + glob.glob("makefile") + glob.glob("*.o"):
+        os.remove(f)
     M4.print_green(f'BUILD SUCCESS')
 
 if __name__ == "__main__":
