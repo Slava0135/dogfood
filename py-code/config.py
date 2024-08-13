@@ -82,7 +82,7 @@ class B3Config:
 class SeqConfig:
     data_ = {
         'NR_SEGMENT'             : 10,
-        'LENGTH_PER_SEGMENT'     : 100,
+        'LENGTH_PER_SEGMENT'     : 10,
         'KMEANS_CLUSTER'         : 3,
         'NR_TEST_PACKAGE'        : 1,
         'NR_TESTCASE_PER_PACKAGE': 5,

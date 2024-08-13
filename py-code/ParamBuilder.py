@@ -26,10 +26,11 @@ class ParamBuilder:
     _open_params = (
         'O_RDWR',
         'O_APPEND',
-        'O_DIRECT',
-        'O_DSYNC',
-        'O_LARGEFILE',
-        'O_NOATIME',
+        # unsupported
+        # 'O_DIRECT',
+        # 'O_DSYNC',
+        # 'O_LARGEFILE',
+        # 'O_NOATIME',
         'O_NONBLOCK',
         'O_SYNC',
     )

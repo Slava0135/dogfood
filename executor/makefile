@@ -2,15 +2,16 @@ CXX=g++
 CXXFLAGS=-std=c++11
 
 BUILD=$(CXX) $(CXXFLAGS)
+TESTNAME=test
 
 all: executor.o test.o syscall.o trace.o utils.o
-	${BUILD} executor.o test.o syscall.o trace.o utils.o -o test.out
+	${BUILD} executor.o ${TESTNAME}.o syscall.o trace.o utils.o -o ${TESTNAME}.out
 
 executor.o: executor.cc
 	${BUILD} -c executor.cc
 
-test.o: test.c
-	${BUILD} -c test.c
+test.o: ${TESTNAME}.c
+	${BUILD} -c ${TESTNAME}.c
 
 syscall.o: syscall.cc
 	${BUILD} -c syscall.cc
