@@ -167,13 +167,6 @@ DEF_FUNC(reduce, const char *path);
 
 // -----------------------------------------------
 
-DEF_FUNC(concurrent, seq_func_t do_syscall_1, seq_func_t do_syscall_2);
-
-#define do_concurrent(do_syscall_1, do_syscall_2) \
-    CALL_FUNC(concurrent, do_syscall_1, do_syscall_2)
-
-// -----------------------------------------------
-
 DEF_FUNC(branch, bool cond, seq_func_t true_seq, seq_func_t false_seq);
 
 #define do_branch(cond, true_seq, false_seq) \

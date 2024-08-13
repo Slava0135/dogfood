@@ -533,29 +533,9 @@ DEF_FUNC(mknod, const char *path, mode_t mode, dev_t dev) {
 // -----------------------------------------------
 
 static void* worker(void *arg) {
-    bind_cpu(1);
     DPRINTF("WORKER\n");
     seq_func_t do_syscall = (seq_func_t)arg;
     do_syscall();
-}
-
-/**
- * Return: whether do_syscall_1 succeeds
- */
-DEF_FUNC(concurrent, seq_func_t do_syscall_1, seq_func_t do_syscall_2) {
-    //
-    // Two possible sequences: SEQ_1: syscall_1 -> syscall_2
-    //                         SEQ_2: syscall_2 -> syscall_1
-    // These two syscalls interfere with each other and
-    // syscall_2 never fails in our abstract model.
-    // So, the syscall_1 failure means SEQ_2; otherwise, the SEQ_1 executes.
-    //
-    pthread_t child_thread;
-    pthread_create(&child_thread, nullptr, worker, (void*)do_syscall_2);
-
-    int status = do_syscall_1();
-    pthread_join(child_thread, nullptr);
-    return status == 0;
 }
 
 // -----------------------------------------------

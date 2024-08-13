@@ -7,37 +7,9 @@
 const char *g_workspace = nullptr;
 char* g_buffers[NR_BUF];
 
-
-static void mount_root(const char *dev, const char *fs) {
-    char cmd[1024];
-    snprintf(cmd, 1024, "./mountfood %s", fs);
-    const char *option = exec_command(cmd);
-
-    DPRINTF("MOUNT ROOT %s on %s: with [%s]\n", fs, g_workspace, option);
-
-    int kmsg_fd = open("/dev/kmsg", O_RDWR);
-    if (kmsg_fd == -1) {
-        DPRINTF("Open /dev/kmsg failure: [%s]\n", strerror(errno));
-        return;
-    }
-    int l = snprintf(cmd, 1024, "\033[0;33mMOUNT OPT [ %s ]\033[0m\n", option);
-    write(kmsg_fd, cmd, l);
-    close(kmsg_fd);
-
-    int status = mount(dev, g_workspace, fs, 0, option);
-    if (status) {
-        DPRINTF("MOUNT ROOT failure: (%s)", strerror(errno));
-        exit(1);
-    }
-
-    // exec_command(cmd);
-}
-
 // -----------------------------------------------
 
 void init_executor() {
-    bind_cpu(0);
-
     fprintf(stdout, "> Prepare workspace %s\n", g_workspace);
     make_dir(g_workspace);
 
@@ -52,19 +24,6 @@ void init_executor() {
     }
 }
 
-static pthread_t daemon_thread;
-static int running = 1;
-
-void *flush_daemon(void *arg) {
-    bind_cpu(1);
-    printf("======> Daemon starts <======\n");
-    while (running) {
-        usleep(1000);
-        do_sync(false);
-        do_remount_root();
-    }
-}
-
 // -----------------------------------------------
 
 int main(int argc, char *argv[]) {
@@ -72,8 +31,6 @@ int main(int argc, char *argv[]) {
         DPRINTF("Usage a.out <fs> <loop-dev> <workspace>\n");
         exit(0);
     }
-
-    bind_cpu(0);
 
     const char *fs = argv[1];
     const char *dev = argv[2];
@@ -87,9 +44,7 @@ int main(int argc, char *argv[]) {
 
     fprintf(stdout, "> Begin testing syscall...\n");
 
-    fprintf(stderr, "> To mount root ...\n");
-    mount_root(dev, fs);
-    fprintf(stderr, "> Mount root done...\n");
+    // TODO: setup
 
     test_syscall();
 

@@ -12,6 +12,5 @@ void make_dir(const char *dir_path);
 char* path_join(const char *prefix, const char *file_name);
 char* rand_string(std::size_t len);
 const char* exec_command(const char *cmd);
-void bind_cpu(int cpu);
 
 #endif /* ifndef __UTILS_H__ */

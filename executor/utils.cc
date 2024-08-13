@@ -197,20 +197,3 @@ const char* exec_command(const char *cmd) {
     str_trim(result);
     return result;
 }
-
-void bind_cpu(int cpu) {
-//we can set one or more bits here, each one representing a single CPU
-  cpu_set_t cpuset;
-
-  CPU_ZERO(&cpuset);       //clears the cpuset
-  CPU_SET(cpu , &cpuset); //set cpuset
-
-  /*
-   * cpu affinity for the calling thread
-   * first parameter is the pid, 0 = calling thread
-   * second parameter is the size of your cpuset
-   * third param is the cpuset in which your thread will be
-   * placed. Each bit represents a CPU
-   */
-  sched_setaffinity(0, sizeof(cpuset), &cpuset);
-}
