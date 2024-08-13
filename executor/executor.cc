@@ -33,27 +33,6 @@ static void mount_root(const char *dev, const char *fs) {
     // exec_command(cmd);
 }
 
-static void start_kdelay() {
-    int kdelay_fd = open("/proc/kdelay", O_RDWR);
-    if (kdelay_fd == -1) {
-        DPRINTF("Open /proc/kdelay failure: [%s]\n", strerror(errno));
-        return;
-    }
-    fprintf(stderr, "> start kdelay\n");
-    write(kdelay_fd, "start", 5);
-    close(kdelay_fd);
-}
-
-static void stop_kdelay() {
-    int kdelay_fd = open("/proc/kdelay", O_RDWR);
-    if (kdelay_fd == -1) {
-        DPRINTF("Open /proc/kdelay failure: [%s]\n", strerror(errno));
-        return;
-    }
-    write(kdelay_fd, "stop", 4);
-    close(kdelay_fd);
-}
-
 // -----------------------------------------------
 
 void init_executor() {
@@ -86,15 +65,6 @@ void *flush_daemon(void *arg) {
     }
 }
 
-void start_daemon() {
-    pthread_create(&daemon_thread, nullptr, flush_daemon, nullptr);
-}
-
-void stop_daemon() {
-    running = 0;
-    pthread_join(daemon_thread, nullptr);
-}
-
 // -----------------------------------------------
 
 int main(int argc, char *argv[]) {
@@ -121,17 +91,7 @@ int main(int argc, char *argv[]) {
     mount_root(dev, fs);
     fprintf(stderr, "> Mount root done...\n");
 
-#ifdef USE_KDELAY
-    start_kdelay();
-    start_daemon();
-#endif
-
     test_syscall();
-
-#ifdef USE_KDELAY
-    stop_kdelay();
-    stop_daemon();
-#endif
 
 #ifdef USE_TRACE
     dump_trace();
