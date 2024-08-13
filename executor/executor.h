@@ -27,7 +27,7 @@
 /*
  * When USE_TRACE is set, the return code of each syscall will be logged.
  */
-// #define USE_TRACE
+#define USE_TRACE
 
 #ifdef USE_TRACE
 #define append_trace(ret_code, err) \
