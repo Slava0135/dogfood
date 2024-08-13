@@ -79,12 +79,53 @@ class B3Config:
         Command.CHROOT      : 0,
     }
 
+class SeqConfig:
+    data_ = {
+        'NR_SEGMENT'             : 10,
+        'LENGTH_PER_SEGMENT'     : 100,
+        'KMEANS_CLUSTER'         : 3,
+        'NR_TEST_PACKAGE'        : 1,
+        'NR_TESTCASE_PER_PACKAGE': 5,
+        'TREE_MAX_SIZE'          : 100000,
+        'OUTPUT_DIR'             : '../workspace/C-output',
+        'NR_CONCAT'              : 5,
+    }
+
+    command_prob_ = {
+        Command.MKDIR       : 100,
+        Command.CREATE      : 100,
+        Command.SYMLINK     : 100,
+        Command.HARDLINK    : 100,
+        Command.REMOVE      : 7,
+        Command.OPEN        : 100,
+        Command.CLOSE       : 100,
+        Command.READ        : 100,
+        Command.WRITE       : 100,
+        Command.RENAME      : 100,
+        Command.SYNC        : 10,
+        Command.FSYNC       : 20,
+        Command.XSYNC       : 0,
+        Command.ENLARGE     : 3,
+        Command.FALLOCATE   : 0,
+        Command.REDUCE      : 3,
+        Command.WRITE_XATTR : 0,
+        Command.READ_XATTR  : 0,
+        Command.REMOUNT_ROOT: 0, # no root
+        Command.STATFS      : 3,
+        Command.OPEN_TMPFILE: 0,
+        Command.DEEPEN      : 3,
+        Command.MKNOD       : 0, # unsupported
+        Command.CHROOT      : 0, # no root
+    }
+
 config_ = DefaultConfig()
 
 def use_config(which):
     global config_
     if which == 'B3':
         config_ = B3Config()
+    elif which == 'Seq':
+        config_ = SeqConfig()
 
 def get(key):
     if key not in config_.data_:

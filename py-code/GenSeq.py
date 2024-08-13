@@ -30,6 +30,7 @@ def generate_test_case(package):
     return test_case
 
 if __name__ == "__main__":
+    config.use_config('Seq')
     package = TestPackage()
     for _ in range(config.get('NR_TESTCASE_PER_PACKAGE')):
         generate_test_case(package)
