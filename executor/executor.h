@@ -24,9 +24,6 @@
 #define NR_BUF 16
 #define SIZE_PER_BUF 4096*20
 
-
-// #define USE_KDELAY
-
 /*
  * When USE_TRACE is set, the return code of each syscall will be logged.
  */
