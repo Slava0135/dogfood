@@ -14,6 +14,7 @@
 #include <string.h>
 #include <sys/mount.h>
 #include <pthread.h>
+#include <stdbool.h>
 
 #define DPRINTF(...) \
     do {\
