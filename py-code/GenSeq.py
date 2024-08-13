@@ -31,4 +31,5 @@ def generate_test_case(package):
 
 if __name__ == "__main__":
     package = TestPackage()
-    test_case = generate_test_case(package)
+    for _ in range(config.get('NR_TESTCASE_PER_PACKAGE')):
+        generate_test_case(package)
