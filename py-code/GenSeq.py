@@ -12,6 +12,8 @@ import shutil
 import subprocess
 import os
 
+EXECUTOR_PATH = "../executor/"
+
 def generate_test_case(package):
     state = FsState()
     #
@@ -34,8 +36,8 @@ def generate_test_case(package):
     return test_case
 
 def build_testcases(path, testcases):
-    base_path = "../executor/"
-    build_files = glob.glob(base_path + "*.h") + glob.glob(base_path + "*.cc") + glob.glob(base_path + "makefile")
+    old_dir = os.getcwd()
+    build_files = glob.glob(EXECUTOR_PATH + "*.h") + glob.glob(EXECUTOR_PATH + "*.cc") + glob.glob(EXECUTOR_PATH + "makefile")
     M4.print_green(f'Copying build files to {path}: {build_files}')
     for f in build_files:
         shutil.copy(f, path)
@@ -52,6 +54,11 @@ def build_testcases(path, testcases):
     for f in glob.glob("*.h") + glob.glob("*.cc") + glob.glob("makefile") + glob.glob("*.o"):
         os.remove(f)
     M4.print_green(f'BUILD SUCCESS')
+    os.chdir(old_dir)
+
+def add_runner(path):
+    M4.print_blue(f'Copying runner to {path}')
+    shutil.copy(EXECUTOR_PATH + "run.py", path)
 
 if __name__ == "__main__":
     config.use_config('Seq')
@@ -60,3 +67,4 @@ if __name__ == "__main__":
     for _ in range(config.get('NR_TESTCASE_PER_PACKAGE')):
         testcases.append(generate_test_case(package))
     build_testcases(package.package_path_, testcases)
+    add_runner(package.package_path_)
