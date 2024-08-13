@@ -6,18 +6,16 @@ from TestPackage import TestPackage
 from Command import *
 
 import M4
-
-NR_SEGMENT = 3
-LENGTH_PER_SEGMENT = 10
+import config
 
 def generate_test_case(package):
     state = FsState()
     #
     # we use kmeans generation and random generation alternately.
     #
-    for _ in range(NR_SEGMENT):
-        state.rand_gen(LENGTH_PER_SEGMENT // 2)
-        state.kmeans_gen(LENGTH_PER_SEGMENT // 2)
+    for _ in range(config.get('NR_SEGMENT')):
+        state.rand_gen(config.get('LENGTH_PER_SEGMENT') // 2)
+        state.kmeans_gen(config.get('LENGTH_PER_SEGMENT') // 2)
 
     #
     # Filling papameters
