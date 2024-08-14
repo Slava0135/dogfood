@@ -13,6 +13,7 @@ import subprocess
 import os
 
 EXECUTOR_PATH = "../executor/"
+WRAPPERS_PATH = "../wrappers/"
 
 def generate_test_case(package):
     state = FsState()
@@ -60,11 +61,18 @@ def add_runner(path):
     M4.print_blue(f'Copying runner to {path}')
     shutil.copy(EXECUTOR_PATH + "run.py", path)
 
+def add_wrappers(path):
+    M4.print_blue(f'Copying wrappers to {path}')
+    for w in glob.glob(WRAPPERS_PATH + "*"):
+        shutil.copy(w, path)
+
 if __name__ == "__main__":
     config.use_config('Seq')
     package = TestPackage()
     testcases = []
     for _ in range(config.get('NR_TESTCASE_PER_PACKAGE')):
         testcases.append(generate_test_case(package))
-    build_testcases(package.package_path_, testcases)
-    add_runner(package.package_path_)
+    path = package.package_path_
+    build_testcases(path, testcases)
+    add_runner(path)
+    add_wrappers(path)
