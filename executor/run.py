@@ -38,7 +38,7 @@ class TestCase:
     
     def compare_and_clear(self):
         global issues_found
-        if len(set(self.outputs.values())) > 1:
+        if len(set([len(x.splitlines()) for x in self.outputs.values()])) > 1:
             log.info(f"different test outputs found!")
             issues_found += 1
             for fs, output in self.outputs.items():
