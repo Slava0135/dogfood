@@ -24,6 +24,7 @@ fh.setFormatter(formatter)
 log.addHandler(ch)
 log.addHandler(fh)
 
+
 issues_found = 0
 
 
@@ -157,6 +158,7 @@ def run_testcases(systems: list[FileSystemUnderTest], testcases: list[TestCase])
             fs.run(tc)
             fs.teardown()
         log.info(f"comparing results...")
+        tc.compare_and_clear()
 
 
 if __name__ == "__main__":
