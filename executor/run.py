@@ -37,16 +37,17 @@ class TestCase:
         self.traces = dict()
     
     def compare_and_clear(self):
+        global issues_found
         if len(set(self.outputs.values())) > 1:
             log.info(f"different test outputs found!")
             issues_found += 1
-            for fs, output in self.outputs:
+            for fs, output in self.outputs.items():
                 with open(f"{self.name}.{fs}.output", "w") as file:
                     file.write(output)
         if len(set(self.traces.values())) > 1:
             log.info(f"different test traces found!")
             issues_found += 1
-            for fs, output in self.outputs:
+            for fs, output in self.traces.items():
                 with open(f"{self.name}.{fs}.trace", "w") as file:
                     file.write(output)
         self.outputs.clear()
@@ -94,7 +95,7 @@ class FileSystemUnderTest:
 
     def run(self, tc: TestCase):
         result = subprocess.run(
-            [f"./{tc.exe}", self.__workspace],
+            [f"./{tc.exe}", f"{self.__workspace}/root"],
             capture_output = True,
             text = True
         )

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+mkdir fstest > /dev/null
+
+echo fstest
+
