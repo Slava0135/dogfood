@@ -17,8 +17,12 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 ch.setFormatter(formatter)
 
-log.addHandler(ch)
+fh = logging.FileHandler("run.log")
+fh.setLevel(logging.DEBUG)
+fh.setFormatter(formatter)
 
+log.addHandler(ch)
+log.addHandler(fh)
 
 issues_found = 0
 
@@ -156,6 +160,7 @@ def run_testcases(systems: list[FileSystemUnderTest], testcases: list[TestCase])
 
 
 if __name__ == "__main__":
+    log.info("initializing runner...")
     try:
         systems = lookup_systems()
         testcases = lookup_testcases()
