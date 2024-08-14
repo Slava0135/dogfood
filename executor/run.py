@@ -3,6 +3,7 @@
 
 import glob
 import logging
+import subprocess
 
 log = logging.getLogger('simple_example')
 log.setLevel(logging.DEBUG)
@@ -16,16 +17,53 @@ class FileSystemUnderTest:
 
     def __init__(self, name: str, setup: str, teardown: str) -> None:
         self.name = name
-        self.setup = setup
-        self.teardown = teardown
+        self.__setup = setup
+        self.__teardown = teardown
+        self.__workspace = None
 
-    def setup():
-        pass
+    def setup(self):
+        if self.__workspace != None:
+            raise AlreadySetupError(f"filesystem {self.name} was already setup")
+        try:
+            result = subprocess.run(
+                [f"./{self.__setup}"],
+                capture_output = True,
+                text = True
+            )
+        except Exception as e:
+            raise SetupError(f"failed to setup filesystem {self.name}") from e
+        else:
+            if result.returncode != 0:
+                raise SetupError(f"failed to setup filesystem {self.name}:\n{result.stderr}")
+            self.__workspace = result.stdout
 
-    def teardown():
-        pass
+    def teardown(self):
+        if self.__workspace == None:
+            raise WasNotSetupError(f"filesystem {self.name} was not setup when calling teardown")
+
+        try:
+            result = subprocess.run(
+                [f"./{self.__teardown}", self.__workspace],
+                capture_output = True,
+                text = True
+            )
+        except Exception as e:
+            raise TeardownError(f"failed to teardown filesystem {self.name}") from e
+        else:    
+            if result.returncode != 0:
+                raise TeardownError(f"failed to teardown filesystem {self.name}:\n{result.stderr}")
+            self.__workspace = None
+
 
 class TeardownScriptNotFoundError(Exception):
+    pass
+class AlreadySetupError(Exception):
+    pass
+class WasNotSetupError(Exception):
+    pass
+class SetupError(Exception):
+    pass
+class TeardownError(Exception):
     pass
 
 def lookup_systems() -> list[FileSystemUnderTest]:
