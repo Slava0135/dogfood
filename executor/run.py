@@ -5,7 +5,7 @@ import glob
 import logging
 import subprocess
 
-log = logging.getLogger('simple_example')
+log = logging.getLogger()
 log.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
