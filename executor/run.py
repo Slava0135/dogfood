@@ -4,6 +4,8 @@
 import glob
 import logging
 import subprocess
+import os
+import stat
 
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
@@ -54,6 +56,11 @@ class FileSystemUnderTest:
                 raise TeardownError(f"failed to teardown filesystem {self.name}:\n{result.stderr}")
             self.__workspace = None
 
+class TestCase:
+    
+    def __init__(self, name: str) -> None:
+        self.name = name
+        self.traces = dict()
 
 class TeardownScriptNotFoundError(Exception):
     pass
@@ -66,23 +73,42 @@ class SetupError(Exception):
 class TeardownError(Exception):
     pass
 
+class TestCaseSourceNotFoundError(Exception):
+    pass
+
+def mark_executable(path: str):
+    os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC)
+
 def lookup_systems() -> list[FileSystemUnderTest]:
     systems = []
     for setup in glob.glob("setup-*"):
         name = setup.removeprefix("setup-")
         teardown_scripts = glob.glob(f"teardown-{name}")
-        if len(teardown_scripts) == 0:
+        if not teardown_scripts:
             raise TeardownScriptNotFoundError(f"teardown script for filesystem '{name}' not found")
         teardown = teardown_scripts.pop()
+        mark_executable(setup)
+        mark_executable(teardown)
         systems.append(FileSystemUnderTest(name, setup, teardown))
     return systems
+
+def lookup_testcases() -> list[TestCase]:
+    testcases = []
+    for tc in glob.glob("*.out"):
+        name = tc.removesuffix(".out")
+        source = glob.glob(f"{name}.c")
+        if not source:
+            raise TestCaseSourceNotFoundError(f"source for testcase '{name}' not found")
+        mark_executable(tc)
+        testcases.append(TestCase(name))
+    return testcases
 
 if __name__ == "__main__":
     try:
         systems = lookup_systems()
-    except TeardownScriptNotFoundError as e:
+        testcases = lookup_testcases()
+    except Exception as e:
         log.error(e)
     else:
-        system_names = [s.name for s in systems]
-        system_n = len(systems)
-        log.info(f"Found {system_n} filesystems under test: {system_names}")
+        log.info(f"found {len(systems)} filesystems under test: {[s.name for s in systems]}")
+        log.info(f"found {len(testcases)} testcases")
