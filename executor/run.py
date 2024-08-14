@@ -94,7 +94,7 @@ class FileSystemUnderTest:
 
     def run(self, tc: TestCase):
         result = subprocess.run(
-            [f"/{tc.exe}", self.__workspace],
+            [f"./{tc.exe}", self.__workspace],
             capture_output = True,
             text = True
         )
