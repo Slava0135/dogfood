@@ -75,7 +75,7 @@ class FileSystemUnderTest:
         else:
             if result.returncode != 0:
                 raise SetupError(f"failed to setup filesystem {self.name}:\n{result.stderr}")
-            self.__workspace = result.stdout
+            self.__workspace = result.stdout.replace("\n", "")
 
     def teardown(self):
         if self.__workspace == None:
