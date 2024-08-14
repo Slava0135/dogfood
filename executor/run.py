@@ -7,13 +7,45 @@ import subprocess
 import os
 import stat
 
+
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
+
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
 ch.setFormatter(formatter)
+
 log.addHandler(ch)
+
+
+issues_found = 0
+
+
+class TestCase:
+
+    def __init__(self, name: str, exe: str) -> None:
+        self.name = name
+        self.exe = exe
+        self.outputs = dict()
+        self.traces = dict()
+    
+    def compare_and_clear(self):
+        if len(set(self.outputs.values())) > 1:
+            log.info(f"different test outputs found!")
+            issues_found += 1
+            for fs, output in self.outputs:
+                with open(f"{self.name}.{fs}.output", "w") as file:
+                    file.write(output)
+        if len(set(self.traces.values())) > 1:
+            log.info(f"different test traces found!")
+            issues_found += 1
+            for fs, output in self.outputs:
+                with open(f"{self.name}.{fs}.trace", "w") as file:
+                    file.write(output)
+        self.outputs.clear()
+        self.traces.clear()
 
 class FileSystemUnderTest:
 
@@ -42,7 +74,6 @@ class FileSystemUnderTest:
     def teardown(self):
         if self.__workspace == None:
             raise WasNotSetupError(f"filesystem {self.name} was not setup when calling teardown")
-
         try:
             result = subprocess.run(
                 [f"./{self.__teardown}", self.__workspace],
@@ -56,11 +87,20 @@ class FileSystemUnderTest:
                 raise TeardownError(f"failed to teardown filesystem {self.name}:\n{result.stderr}")
             self.__workspace = None
 
-class TestCase:
-    
-    def __init__(self, name: str) -> None:
-        self.name = name
-        self.traces = dict()
+    def run(self, tc: TestCase):
+        result = subprocess.run(
+            [f"/{tc.exe}", self.__workspace],
+            capture_output = True,
+            text = True
+        )
+        tc.outputs[self.name] = result.stdout + result.stderr
+        try:
+            with open('trace.dat') as f:
+                tc.traces[self.name] = f.read()
+        except:
+            log.warning(f"trace not found")
+            tc.traces[self.name] = ""
+
 
 class TeardownScriptNotFoundError(Exception):
     pass
@@ -75,6 +115,7 @@ class TeardownError(Exception):
 
 class TestCaseSourceNotFoundError(Exception):
     pass
+
 
 def mark_executable(path: str):
     os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC)
@@ -94,14 +135,25 @@ def lookup_systems() -> list[FileSystemUnderTest]:
 
 def lookup_testcases() -> list[TestCase]:
     testcases = []
-    for tc in glob.glob("*.out"):
-        name = tc.removesuffix(".out")
+    for exe in glob.glob("*.out"):
+        name = exe.removesuffix(".out")
         source = glob.glob(f"{name}.c")
         if not source:
             raise TestCaseSourceNotFoundError(f"source for testcase '{name}' not found")
-        mark_executable(tc)
-        testcases.append(TestCase(name))
+        mark_executable(exe)
+        testcases.append(TestCase(name, exe))
     return testcases
+
+def run_testcases(systems: list[FileSystemUnderTest], testcases: list[TestCase]):
+    for tc in testcases:
+        log.info(f"running testcase '{tc.name}'...")
+        for fs in systems:
+            log.info(f"testing {fs.name}...")
+            fs.setup()
+            fs.run(tc)
+            fs.teardown()
+        log.info(f"comparing results...")
+
 
 if __name__ == "__main__":
     try:
@@ -112,3 +164,11 @@ if __name__ == "__main__":
     else:
         log.info(f"found {len(systems)} filesystems under test: {[s.name for s in systems]}")
         log.info(f"found {len(testcases)} testcases")
+        log.info(f"running testcases...")
+        try:
+            run_testcases(systems, testcases)
+        except Exception as e:
+            log.error(f"critical error when running testcases, aborting...\n{e}")
+        else:
+            log.info(f"done!")
+        log.info(f"found {issues_found} issues")
