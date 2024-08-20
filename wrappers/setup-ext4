@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 
-mkdir fstest > /dev/null
+: "${FSNAME:="fstest"}"
 
-echo fstest
+DEVICE="/dev/ram0"
+RD_SIZE="1000000"
+MOUNT_POINT="/mnt/ext4/$FSNAME"
+
+( mkdir -p "$MOUNT_POINT"; modprobe brd rd_nr=1 rd_size=$RD_SIZE; mkfs.ext4 $DEVICE; mount -t ext4 $DEVICE "$MOUNT_POINT"; ) >> ext4.log 2>&1
+
+echo "$MOUNT_POINT"
 
