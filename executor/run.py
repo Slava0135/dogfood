@@ -39,13 +39,13 @@ class TestCase:
     def compare_and_clear(self):
         global issues_found
         if len(set([len(x.splitlines()) for x in self.outputs.values()])) > 1:
-            log.info(f"different test outputs found!")
+            log.warning(f"different test outputs found!")
             issues_found += 1
             for fs, output in self.outputs.items():
                 with open(f"{self.name}.{fs}.output", "w") as file:
                     file.write(output)
         if len(set(self.traces.values())) > 1:
-            log.info(f"different test traces found!")
+            log.warning(f"different test traces found!")
             issues_found += 1
             for fs, output in self.traces.items():
                 with open(f"{self.name}.{fs}.trace", "w") as file:
@@ -151,8 +151,10 @@ def lookup_testcases() -> list[TestCase]:
     return testcases
 
 def run_testcases(systems: list[FileSystemUnderTest], testcases: list[TestCase]):
+    index = 0
     for tc in testcases:
-        log.info(f"running testcase '{tc.name}'...")
+        index += 1
+        log.info(f"running testcase {index}/{len(testcases)}: '{tc.name}'")
         for fs in systems:
             log.info(f"testing {fs.name}...")
             fs.setup()

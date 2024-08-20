@@ -85,7 +85,7 @@ class SeqConfig:
         'LENGTH_PER_SEGMENT'     : 10,
         'KMEANS_CLUSTER'         : 3,
         'NR_TEST_PACKAGE'        : 1,
-        'NR_TESTCASE_PER_PACKAGE': 5,
+        'NR_TESTCASE_PER_PACKAGE': 1000,
         'TREE_MAX_SIZE'          : 100000,
         'OUTPUT_DIR'             : '../workspace/C-output',
         'NR_CONCAT'              : 5,
