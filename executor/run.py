@@ -26,7 +26,7 @@ log.addHandler(fh)
 
 
 issues_found = 0
-
+asfs = None
 
 class TestCase:
 
@@ -35,6 +35,7 @@ class TestCase:
         self.exe = exe
         self.outputs = dict()
         self.traces = dict()
+        self.abs_states = dict()
     
     def compare_and_clear(self):
         global issues_found
@@ -50,8 +51,11 @@ class TestCase:
             for fs, output in self.traces.items():
                 with open(f"{self.name}.{fs}.trace", "w") as file:
                     file.write(output)
+        if len(set(self.abs_states.values())) > 1:
+            log.warning(f"different abstract states found!")
         self.outputs.clear()
         self.traces.clear()
+        self.abs_states.clear()
 
 class FileSystemUnderTest:
 
@@ -106,6 +110,17 @@ class FileSystemUnderTest:
         except:
             log.warning(f"trace not found")
             tc.traces[self.name] = ""
+        if asfs:
+            result = subprocess.run(
+                [f"./{asfs}", f"{self.__workspace}"],
+                capture_output = True,
+                text = True
+            )
+            if result.returncode:
+                log.warning(f"failed to eval abstract state for filesystem {self.name}:\n{result.stderr}")
+                tc.abs_states[self.name] = ""
+            else:
+                tc.abs_states[self.name] = result.stdout
 
 
 class TeardownScriptNotFoundError(Exception):
@@ -150,6 +165,14 @@ def lookup_testcases() -> list[TestCase]:
         testcases.append(TestCase(name, exe))
     return testcases
 
+def init_asfs():
+    global asfs
+    f = glob.glob("asfs")
+    if f:
+        asfs = f.pop()
+    else:
+        log.warning("'abstract state filesystem' tool was not found!")
+
 def run_testcases(systems: list[FileSystemUnderTest], testcases: list[TestCase]):
     index = 0
     for tc in testcases:
@@ -173,6 +196,7 @@ if __name__ == "__main__":
     try:
         systems = lookup_systems()
         testcases = lookup_testcases()
+        init_asfs()
     except Exception as e:
         log.error(e)
     else:
