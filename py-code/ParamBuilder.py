@@ -82,7 +82,7 @@ class ParamBuilder:
 
     @Builder.add(Command.DEEPEN)
     def _build_deepen_param(self):
-        return random.randint(1, 1 << 10)
+        return random.randint(1, 1 << 5)
 
     @Builder.add(Command.ENLARGE)
     def _build_enlarge_param(self):
