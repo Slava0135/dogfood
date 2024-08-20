@@ -156,7 +156,11 @@ def run_testcases(systems: list[FileSystemUnderTest], testcases: list[TestCase])
         for fs in systems:
             log.info(f"testing {fs.name}...")
             fs.setup()
-            fs.run(tc)
+            try:
+                fs.run(tc)
+            except:
+                fs.teardown()
+                raise
             fs.teardown()
         log.info(f"comparing results...")
         tc.compare_and_clear()
