@@ -1,3 +1,44 @@
 #!/usr/bin/env bash
 
-( umount -fl "$1"; rmmod brd; rm -rf "$1"; ) >> ext4.log 2>&1
+if getopts "f" _; then
+    FORCE=true
+    shift 1
+else
+    FORCE=false
+fi
+
+MOUNT_POINT=$1
+
+function log {
+    MSG="$(date "+%Y-%m-%d %H:%M:%S") $1"
+    echo "$MSG" >> ext4.log 2>&1
+    echo "$MSG" >&2
+}
+
+function tryexit {
+    if ! $FORCE; then
+        exit "$1"
+    fi
+}
+
+if [[ $# -eq 0 ]]; then
+    log '[ERROR] mount point not provided, aborting...'
+    exit 1
+fi
+
+log "[INFO] tearing down filesystem at $MOUNT_POINT..."
+
+if ! RESULT=$(umount -fl "$MOUNT_POINT" 2>&1); then
+    log "[ERROR] when unmounting: $RESULT"
+    tryexit 2
+fi 
+
+if ! RESULT=$(rmmod brd 2>&1); then
+    log "[ERROR] when removing module: $RESULT"
+    tryexit 3
+fi 
+
+if ! RESULT=$(rm -rf "$MOUNT_POINT" 2>&1); then
+    log "[ERROR] when removing mount point: $RESULT"
+    tryexit 4
+fi 
