@@ -95,7 +95,7 @@ class FileSystemUnderTest:
 
     def run(self, tc: TestCase):
         result = subprocess.run(
-            [f"./{tc.exe}", f"{self.__workspace}/root"],
+            [f"./{tc.exe}", f"{self.__workspace}"],
             capture_output = True,
             text = True
         )
