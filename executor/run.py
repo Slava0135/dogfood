@@ -12,6 +12,7 @@ log = logging.getLogger()
 log.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
+formatter.datefmt = "%Y-%m-%d %H:%M:%S"
 
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
