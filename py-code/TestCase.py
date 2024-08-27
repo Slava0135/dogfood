@@ -65,8 +65,8 @@ class TestCase:
         # Write two dummy functions to avoid
         # `undefined reference` compilation errors
         #
-        self.fd_.write('int concurrent_syscall_1() { return 0; }\n')
-        self.fd_.write('int concurrent_syscall_2() { return 0; }\n')
+        # self.fd_.write('int concurrent_syscall_1() { return 0; }\n')
+        # self.fd_.write('int concurrent_syscall_2() { return 0; }\n')
 
     @staticmethod
     def from_file(case_path):
