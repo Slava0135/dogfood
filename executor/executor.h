@@ -41,11 +41,6 @@ void dump_trace();
 #define append_trace(ret_code, err)
 #endif
 
-
-
-typedef int (*seq_func_t)();
-
-void init_executor();
 int test_syscall();
 void report_result();
 
@@ -165,13 +160,6 @@ DEF_FUNC(reduce, const char *path);
 
 // -----------------------------------------------
 
-DEF_FUNC(branch, bool cond, seq_func_t true_seq, seq_func_t false_seq);
-
-#define do_branch(cond, true_seq, false_seq) \
-        CALL_FUNC(branch, cond, true_seq, false_seq)
-
-// -----------------------------------------------
-
 DEF_FUNC(write_xattr, const char *path, const char *key, const char *value);
 
 #define do_write_xattr(path, key, value) \
@@ -193,12 +181,6 @@ DEF_FUNC(read_xattr, const char *path, const char *key);
 
 #define CALL_FUNC_NOARGS(cmd_name) \
         impl_do_##cmd_name(__FILE__, __LINE__)
-
-// -----------------------------------------------
-
-DEF_FUNC_NOARGS(remount_root);
-
-#define do_remount_root() CALL_FUNC_NOARGS(remount_root)
 
 // -----------------------------------------------
 

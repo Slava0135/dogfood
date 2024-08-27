@@ -1,15 +1,23 @@
-#include "executor.h"
-
 #include <stdlib.h>
 
+#include "executor.h"
 #include "utils.h"
 
 const char *g_workspace = nullptr;
 char* g_buffers[NR_BUF];
 
-// -----------------------------------------------
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        DPRINTF("USAGE: CMD <workspace>\n");
+        return 1;
+    }
 
-void init_executor() {
+    g_workspace = argv[1];
+    if (!g_workspace) {
+        DPRINTF("ERROR: workspace is NULL\n");
+        return 2;
+    }
+
     fprintf(stdout, "> Prepare workspace %s\n", g_workspace);
     make_dir(g_workspace);
 
@@ -22,28 +30,8 @@ void init_executor() {
         memset(buf, 'a' + i, SIZE_PER_BUF);
         g_buffers[i] = buf;
     }
-}
-
-// -----------------------------------------------
-
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        DPRINTF("USAGE: CMD <workspace>\n");
-        exit(0);
-    }
-
-    g_workspace = argv[1];
-    if (!g_workspace) {
-        DPRINTF("ERROR: workspace is NULL\n");
-        exit(0);
-    }
-
-    init_executor();
 
     fprintf(stdout, "> Begin testing syscall...\n");
-
-    // TODO: setup
-
     test_syscall();
 
 #ifdef USE_TRACE
@@ -51,6 +39,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     report_result();
+
     fprintf(stdout, "> ...Ending\n");
 	return 0;
 }

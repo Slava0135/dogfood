@@ -456,53 +456,6 @@ DEF_FUNC(read_xattr, const char *path, const char *key) {
 
 // -----------------------------------------------
 
-DEF_FUNC_NOARGS(remount_root) {
-    char cmd[1024];
-
-    //
-    // Determine which filesystem under testing
-    //
-    snprintf(cmd, 1024, "df -T %s | awk '{ getline ; print $2 }'", g_workspace);
-    const char *fs = exec_command(cmd);
-
-    //
-    // Get remount option
-    //
-    snprintf(cmd, 1024, "./mountfood %s", fs);
-    const char *option = exec_command(cmd);
-
-    int kmsg_fd = open("/dev/kmsg", O_RDWR);
-    if (kmsg_fd == -1) {
-        DPRINTF("Open /dev/kmsg failure: [%s]\n", strerror(errno));
-        return -1;
-    }
-    int l = snprintf(cmd, 1024, "\033[0;33mREMOUNT OPT (line: %d) [ %s ]\033[0m\n", line, option);
-    write(kmsg_fd, cmd, l);
-    close(kmsg_fd);
-
-    //
-    // Find which device
-    //
-    snprintf(cmd, 1024, "findmnt -n -o SOURCE --target %s", g_workspace);
-    const char *dev = exec_command(cmd);
-
-    // snprintf(cmd, 1024, "mount %s %s -o \"remount,%s\"", dev, g_workspace, option);
-    DPRINTF("REMOUNT (line: %d) %s: with [remount,%s]\n", line, fs, option);
-
-    int status = mount(nullptr, g_workspace, nullptr, MS_REMOUNT, option);
-    if (status) {
-        FAILURE_REPORT("REMOUNT_ROOT", option);
-    }
-    append_trace(status, errno);
-
-    SUCCESS_REPORT();
-    return status;
-    // const char *output = exec_command(cmd);
-    // DPRINTF("REMOUNT RESULT: %s\n", output);
-}
-
-// -----------------------------------------------
-
 DEF_FUNC(statfs, const char *path) {
     path = patch_path(path);
 
@@ -528,22 +481,4 @@ DEF_FUNC(mknod, const char *path, mode_t mode, dev_t dev) {
     append_trace(status, errno);
     SUCCESS_REPORT();
     return status;
-}
-
-// -----------------------------------------------
-
-static void* worker(void *arg) {
-    DPRINTF("WORKER\n");
-    seq_func_t do_syscall = (seq_func_t)arg;
-    do_syscall();
-}
-
-// -----------------------------------------------
-
-DEF_FUNC(branch, bool cond, seq_func_t true_seq, seq_func_t false_seq) {
-    if (cond) {
-        return true_seq();
-    } else {
-        return false_seq();
-    }
 }
