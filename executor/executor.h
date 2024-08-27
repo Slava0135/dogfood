@@ -1,7 +1,4 @@
-// #define _GNU_SOURCE
-
-#ifndef __EXECUTOR_H__
-#define __EXECUTOR_H__
+#pragma once
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -203,5 +200,3 @@ DEF_FUNC(mknod, const char *path, mode_t mode, dev_t dev);
 #define do_mknod(path, mode, dev) \
     CALL_FUNC(mknod, path, mode, dev)
 
-
-#endif /* ifndef __EXECUTOR_H__ */

@@ -1,5 +1,4 @@
-#ifndef __UTILS_H__
-#define __UTILS_H__
+#pragma once
 
 #include <cstddef>
 
@@ -12,5 +11,3 @@ void make_dir(const char *dir_path);
 char* path_join(const char *prefix, const char *file_name);
 char* rand_string(std::size_t len);
 const char* exec_command(const char *cmd);
-
-#endif /* ifndef __UTILS_H__ */
