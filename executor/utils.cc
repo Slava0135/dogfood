@@ -128,20 +128,6 @@ const char* str_format(char* fmt, ...) {
 
 // -----------------------------------------------
 
-void make_dir(const char *dir_path) {
-    int ret = mkdir(dir_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-    if (ret == -1) {
-        if(errno == EEXIST) {
-            DPRINTF("ERROR: %s exists\n", dir_path);
-        } else {
-            DPRINTF("ERROR: %s\n", strerror(errno));
-            exit(0);
-        }
-    } else {
-        fprintf(stdout, "> Make dir %s\n", dir_path);
-    }
-}
-
 char* path_join(const char *prefix, const char *file_name) {
     int len = strlen(prefix) + strlen(file_name) + 3;
     char *buf = (char*)malloc(len);

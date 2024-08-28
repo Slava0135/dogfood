@@ -19,7 +19,16 @@ int main(int argc, char *argv[]) {
     }
 
     fprintf(stdout, "> Prepare workspace %s\n", g_workspace);
-    make_dir(g_workspace);
+    if (mkdir(g_workspace, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
+        if(errno == EEXIST) {
+            DPRINTF("WARNING: %s exists\n", g_workspace);
+        } else {
+            DPRINTF("ERROR: %s\n", strerror(errno));
+            return 3;
+        }
+    } else {
+        fprintf(stdout, "> Make dir %s\n", g_workspace);
+    }
 
     for (int i = 0; i < NR_BUF; ++i) {
         char *buf = (char*)align_alloc(SIZE_PER_BUF);
