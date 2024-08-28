@@ -15,7 +15,7 @@
 
 #define DPRINTF(...) \
     do {\
-        fprintf(stderr, "[%s %d]: ", __FILE__, __LINE__);\
+        fprintf(stderr, "%s:%d: ", __FILE__, __LINE__);\
         fprintf(stderr, __VA_ARGS__ );\
     } while(0)
 
