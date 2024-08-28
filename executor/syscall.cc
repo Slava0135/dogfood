@@ -32,7 +32,7 @@ extern char* g_buffers[];
 
 static const char* patch_path(const char *path) {
     if (path[0] != '/') {
-        DPRINTF("Error path: %s\n", path);
+        DPRINTF("ERROR: when patching path %s\n", path);
         assert(0);
     }
 
@@ -160,7 +160,7 @@ static int remove_dir(const char *path) {
                     } else {
                         r2 = unlink(buf);
                         if (r2) {
-                            DPRINTF("UNLINK failure %s\n", buf);
+                            DPRINTF("ERROR: unlink failure %s\n", buf);
                         }
                     }
                 }
@@ -176,7 +176,7 @@ static int remove_dir(const char *path) {
     }
 
     if (r) {
-        DPRINTF("RMDIR failure %s\n", path);
+        DPRINTF("ERROR: rmdir failure %s\n", path);
     }
 
     SUCCESS_REPORT();
@@ -262,7 +262,7 @@ DEF_FUNC(read, int fd, int buf_id, int size) {
 
     char *buf = g_buffers[buf_id];
     if (!buf) {
-        DPRINTF("Buffer not initialized\n");
+        DPRINTF("ERROR: buffer not initialized\n");
         return -1;
     }
     int nr = read(fd, buf, size);

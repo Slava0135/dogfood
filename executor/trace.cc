@@ -13,7 +13,7 @@ static int g_trace_pos = 0;
 
 void append_trace_impl(int line, int ret_code, int err) {
     if (g_trace_pos >= NR_TRACE_CAP) {
-        DPRINTF("Trace buffer overflow!\n");
+        DPRINTF("ERROR: trace buffer overflow\n");
         return;
     }
     g_traces[g_trace_pos].line_ = line;
@@ -24,15 +24,15 @@ void append_trace_impl(int line, int ret_code, int err) {
 }
 
 void dump_trace() {
-    DPRINTF("DUMP TRACE\n");
+    printf("> Dumping trace...\n");
 
     if (g_trace_pos >= NR_TRACE_CAP) {
-        DPRINTF("Trace buffer overflow!\n");
+        DPRINTF("ERROR: trace buffer overflow\n");
     }
 
     FILE *trace_dump_fp = fopen("./trace.dat", "w");
     if (!trace_dump_fp) {
-        DPRINTF("Open trace dump file failure\n");
+        DPRINTF("ERROR: when opening trace dump file\n");
         return;
     }
 

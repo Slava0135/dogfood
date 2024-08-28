@@ -18,7 +18,7 @@ void* align_alloc(std::size_t size) {
     void *ptr = nullptr;
     int ret = posix_memalign(&ptr, ALIGN, size);
     if (ret) {
-      DPRINTF("** %s\n", strerror(errno));
+      DPRINTF("ERROR: %s\n", strerror(errno));
     }
     return ptr;
 }
@@ -84,7 +84,7 @@ const char* str_concat(const char *str_1, const char *str_2) {
 
     char *new_str = (char*)malloc(strlen(str_1) + strlen(str_2) + 1);
     if(new_str == nullptr){
-        DPRINTF("Malloc failed!\n");
+        DPRINTF("ERROR: malloc failed\n");
         return nullptr;
     }
     //
@@ -117,7 +117,7 @@ const char* str_format(char* fmt, ...) {
 
     int len = vsnprintf(buf, BUF_LEN, fmt, vl);
     if (len >= BUF_LEN) {
-        fprintf(stderr, "Format failure: too long\n");
+        DPRINTF("ERROR: string too long");
         free(buf);
         return nullptr;
     }
@@ -132,9 +132,9 @@ void make_dir(const char *dir_path) {
     int ret = mkdir(dir_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     if (ret == -1) {
         if(errno == EEXIST) {
-            DPRINTF("** %s exists\n", dir_path);
+            DPRINTF("ERROR: %s exists\n", dir_path);
         } else {
-            DPRINTF("** %s\n", strerror(errno));
+            DPRINTF("ERROR: %s\n", strerror(errno));
             exit(0);
         }
     } else {
@@ -148,7 +148,7 @@ char* path_join(const char *prefix, const char *file_name) {
     int ret = snprintf(buf, len, "%s/%s", prefix, file_name);
     if (ret == len) {
         free(buf);
-        DPRINTF("PATH_JOIN failure\n");
+        DPRINTF("ERROR: when joining path\n");
         return nullptr;
     } else {
         buf[ret] = '\0';
@@ -185,7 +185,7 @@ const char* exec_command(const char *cmd) {
 
     FILE* fp = popen(cmd, "r");
     if (!fp) {
-        DPRINTF("Exec command `%s` failure\n", cmd);
+        DPRINTF("ERROR: when executing `%s`\n", cmd);
         exit(1);
     }
 

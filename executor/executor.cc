@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < NR_BUF; ++i) {
         char *buf = (char*)align_alloc(SIZE_PER_BUF);
         if (!buf) {
-            DPRINTF("Malloc failure\n");
+            DPRINTF("ERROR: malloc failure\n");
             exit(1);
         }
         memset(buf, 'a' + i, SIZE_PER_BUF);
@@ -40,6 +40,6 @@ int main(int argc, char *argv[]) {
 
     report_result();
 
-    fprintf(stdout, "> ...Ending\n");
+    fprintf(stdout, "> Done!\n");
 	return 0;
 }
