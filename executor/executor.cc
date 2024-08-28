@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
         char *buf = (char*)align_alloc(SIZE_PER_BUF);
         if (!buf) {
             DPRINTF("ERROR: malloc failure\n");
-            exit(1);
+            return 4;
         }
         memset(buf, 'a' + i, SIZE_PER_BUF);
         g_buffers[i] = buf;
