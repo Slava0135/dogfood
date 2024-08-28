@@ -28,14 +28,14 @@
 #define USE_TRACE
 
 #ifdef USE_TRACE
-#define append_trace(ret_code, err) \
-    append_trace_impl(__LINE__, ret_code, err)
+#define append_trace(idx, cmd, ret_code, err) \
+    append_trace_impl(idx, cmd, ret_code, err)
 
-void append_trace_impl(int line, int ret_code, int err);
+void append_trace_impl(int idx, const char* cmd, int ret_code, int err);
 void dump_trace();
 
 #else
-#define append_trace(ret_code, err)
+#define append_trace(idx, cmd, ret_code, err)
 #endif
 
 int test_syscall();
