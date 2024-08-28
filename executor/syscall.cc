@@ -44,87 +44,69 @@ static const char* patch_path(const char *path) {
     return result;
 }
 
-// -----------------------------------------------
-static int g_nr_failure = 0;
-static int g_nr_success = 0;
+static int failure_n = 0;
+static int success_n = 0;
+
+static void success(int status) {
+    append_trace(status, 0);
+    success_n += 1;
+}
+
+static void failure(int status, const char* cmd, const char* path) {
+    append_trace(status, errno);
+    DPRINTF("%s FAIL %s (%s)\n", cmd, path, strerror(errno));
+    failure_n += 1;
+}
+
+static void failure2(int status, const char* cmd, const char* path1, const char* path2) {
+    append_trace(status, errno);
+    DPRINTF("%s FAIL %s X %s (%s)\n", cmd, path1, path2, strerror(errno));
+    failure_n += 1;
+}
 
 void report_result() {
-    printf("#SUCCESS %d; #FAILURE %d\n", g_nr_success, g_nr_failure);
+    printf("#SUCCESS %d; #FAILURE %d\n", success_n, failure_n);
 }
 
-#define SUCCESS_REPORT() \
-    do { \
-        g_nr_success += 1; \
-    } while (0)
-
-#define FAILURE_REPORT(cmd, path) \
-    do { \
-        DPRINTF("%s FAIL [%s: %d] %s (%s)\n", cmd, file, line, path, strerror(errno)); \
-        g_nr_failure += 1; \
-    } while (0)
-
-
-#define FAILURE_REPORT_2(cmd, path_1, path_2) \
-    do { \
-        DPRINTF("%s FAIL [%s: %d] %s X %s (%s)\n", cmd, file, line, path_1, path_2, strerror(errno)); \
-        g_nr_failure += 1; \
-    } while (0)
-
-
-// -----------------------------------------------
-
-#define DEF_FUNC(cmd_name, ...) \
-    int impl_do_##cmd_name(__VA_ARGS__, const char *file, int line)
-
-// -----------------------------------------------
-
-DEF_FUNC(mkdir, const char *path, mode_t param) {
+int do_mkdir(const char *path, mode_t param) {
     int status = mkdir(patch_path(path), param);
     if (status == -1) {
-        FAILURE_REPORT("MKDIR", path);
+        failure(status, "MKDIR", path);
+    } else {
+        success(status);
     }
-    append_trace(status, 0);
-    SUCCESS_REPORT();
     return status;
 }
 
-// -----------------------------------------------
-
-DEF_FUNC(create, const char *path, mode_t param) {
+int do_create(const char *path, mode_t param) {
     int status = creat(patch_path(path), param);
     if (status == -1) {
-        FAILURE_REPORT("CREATE", path);
+        failure(status, "CREATE", path);
+    } else {
+        success(status);
     }
-    append_trace(status, 0);
-    SUCCESS_REPORT();
     return status;
 }
 
-// -----------------------------------------------
-
-DEF_FUNC(symlink, const char *old_path, const char *new_path) {
+int do_symlink(const char *old_path, const char *new_path) {
     int status = symlink(patch_path(old_path), patch_path(new_path));
     if (status == -1) {
-        FAILURE_REPORT_2("SYMLINK", old_path, new_path);
+        failure2(status, "SYMLINK", old_path, new_path);
+    } else {
+        success(status);
     }
-    append_trace(status, errno);
-    SUCCESS_REPORT();
     return status;
 }
 
-// -----------------------------------------------
-
-DEF_FUNC(hardlink, const char *old_path, const char *new_path) {
+int do_hardlink(const char *old_path, const char *new_path) {
     int status = link(patch_path(old_path), patch_path(new_path));
     if (status == -1) {
-        FAILURE_REPORT_2("HARDLINK", old_path, new_path);
+        failure2(status, "HARDLINK", old_path, new_path);
+    } else {
+        success(status);
     }
-    append_trace(status, errno);
-    SUCCESS_REPORT();
     return status;
 }
-
-// -----------------------------------------------
 
 static int remove_dir(const char *path) {
     DIR *d = opendir(path);
@@ -179,84 +161,70 @@ static int remove_dir(const char *path) {
         DPRINTF("ERROR: rmdir failure %s\n", path);
     }
 
-    SUCCESS_REPORT();
     return r;
 }
 
-DEF_FUNC(remove, const char *path) {
+int do_remove(const char *path) {
     path = patch_path(path);
     struct stat file_stat;
     int status = 0;
 
     status = lstat(path, &file_stat);
     if (status < 0) {
-        FAILURE_REPORT("STAT", path);
-        append_trace(status, errno);
+        failure(status, "STAT", path);
         return -1;
     }
 
     if (S_ISDIR(file_stat.st_mode)) {
         status = remove_dir(path);
         if (status) {
-            FAILURE_REPORT("RMDIR", path);
+            failure(status, "RMDIR", path);
+        } else {
+            success(status);
         }
     } else {
         status = unlink(path);
         if (status == -1) {
-            FAILURE_REPORT("UNLINK", path);
+            failure(status, "UNLINK", path);
+        } else {
+            success(status);
         }
     }
 
-    append_trace(status, errno);
-    SUCCESS_REPORT();
     return status;
 }
 
-// -----------------------------------------------
-
-DEF_FUNC(open, int *fd_ptr, const char *path, int param) {
-    int fd = open(patch_path(path), param);
+int do_open(int &fd, const char *path, int param) {
+    fd = open(patch_path(path), param);
     if (fd == -1) {
-        FAILURE_REPORT("OPEN", path);
+        failure(fd, "OPEN", path);
+    } else {
+        success(fd);
     }
-    append_trace(fd, errno);
-    SUCCESS_REPORT();
-
-    *fd_ptr = fd;
     return fd;
 }
 
-// -----------------------------------------------
-
-DEF_FUNC(open_tmpfile, int *fd_ptr, const char *path, int param) {
-    int fd = open(patch_path(path),
-                  param | O_TMPFILE,
-                  S_IRWXU| S_IWUSR | S_IRGRP | S_IROTH);
+int do_open_tmpfile(int &fd, const char *path, int param) {
+    fd = open(patch_path(path), param | O_TMPFILE, S_IRWXU| S_IWUSR | S_IRGRP | S_IROTH);
     if (fd == -1) {
-        FAILURE_REPORT("OPEN_TMPFILE", path);
+        failure(fd, "OPEN_TMPFILE", path);
+    } else {
+        success(fd);
     }
-    append_trace(fd, errno);
-    SUCCESS_REPORT();
-
-    *fd_ptr = fd;
     return fd;
 }
 
-// -----------------------------------------------
-
-DEF_FUNC(close, int fd) {
+int do_close(int fd) {
     int status = close(fd);
     if (status == -1) {
-        FAILURE_REPORT("CLOSE", std::to_string(fd).c_str());
+        failure(status, "CLOSE", std::to_string(fd).c_str());
+    } else {
+        success(status);
     }
-    append_trace(status, errno);
-    SUCCESS_REPORT();
     return status;
 }
 
-// -----------------------------------------------
-
-DEF_FUNC(read, int fd, int buf_id, int size) {
+int do_read(int fd, int buf_id, int size) {
     assert(0 <= buf_id && buf_id < NR_BUF);
     assert(0 <= size && size <= SIZE_PER_BUF);
 
@@ -265,20 +233,18 @@ DEF_FUNC(read, int fd, int buf_id, int size) {
         DPRINTF("ERROR: buffer not initialized\n");
         return -1;
     }
+
     int nr = read(fd, buf, size);
     if (nr == -1) {
-        FAILURE_REPORT("READ", std::to_string(fd).c_str());
-        append_trace(nr, errno);
+        failure(nr, "READ", std::to_string(fd).c_str());
         return -1;
+    } else {
+        success(nr);
     }
-    append_trace(nr, errno);
-    SUCCESS_REPORT();
     return 0;
 }
 
-// -----------------------------------------------
-
-DEF_FUNC(write, int fd, int buf_id, int size) {
+int do_write(int fd, int buf_id, int size) {
     assert(0 <= buf_id && buf_id < NR_BUF);
     assert(0 <= size && size <= SIZE_PER_BUF);
 
@@ -287,64 +253,57 @@ DEF_FUNC(write, int fd, int buf_id, int size) {
     for (int i = 0; i < 10; ++i) {
         nr = write(fd, buf, size);
         if (nr == -1) {
-            FAILURE_REPORT("WRITE", std::to_string(fd).c_str());
-            append_trace(nr, errno);
+            failure(nr, "WRITE", std::to_string(fd).c_str());
             return -1;
         }
     }
-    append_trace(nr, errno);
-    SUCCESS_REPORT();
-    // free(buf);
+    success(nr);
     return 0;
 }
 
-// -----------------------------------------------
-
-DEF_FUNC(rename, const char *old_path, const char *new_path) {
+int do_rename(const char *old_path, const char *new_path) {
     int status = rename(patch_path(old_path), patch_path(new_path));
     if (status == -1) {
-      FAILURE_REPORT_2("RENAME", old_path, new_path);
+        failure2(status, "RENAME", old_path, new_path);
+    } else {
+        success(status);
     }
-    append_trace(status, errno);
-    SUCCESS_REPORT();
     return status;
 }
 
-// -----------------------------------------------
-
-DEF_FUNC(sync, bool is_last) {
+int do_sync(bool is_last) {
     sync();
-    SUCCESS_REPORT();
+    success(0);
     return 0;
 }
 
-// -----------------------------------------------
-
-DEF_FUNC(fsync, int fd, bool is_last) {
-    SUCCESS_REPORT();
-    return fsync(fd);
+int do_fsync(int fd, bool is_last) {
+    int status = fsync(fd);
+    if (status == -1) {
+        failure(status, "FSYNC", (std::string() + "<" + std::to_string(fd) + ">").c_str());
+    } else {
+        success(status);
+    }
+    return status;
 }
 
-// -----------------------------------------------
-
-DEF_FUNC(enlarge, const char *path, int size) {
+int do_enlarge(const char *path, int size) {
     path = patch_path(path);
 
     struct stat file_stat;
     int status = stat(path, &file_stat);
     if (status < 0) {
-        FAILURE_REPORT("STAT", path);
-        append_trace(status, errno);
+        failure(status, "STAT", path);
         return -1;
     }
 
     if (S_ISREG(file_stat.st_mode)) {
         status = truncate(path, size * 10);
         if (status == -1) {
-            FAILURE_REPORT("TRUNCATE", path);
+            failure(status, "TRUNCATE", path);
+        } else {
+            success(status);
         }
-        append_trace(status, errno);
-        SUCCESS_REPORT();
         return status;
     } else if (S_ISDIR(file_stat.st_mode)) {
         for (int i = 0; i < size; ++i) {
@@ -353,22 +312,18 @@ DEF_FUNC(enlarge, const char *path, int size) {
 
             status = mkdir(child_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
             if (status == -1) {
-                FAILURE_REPORT("MKDIR", child_path);
+                failure(status, "MKDIR", child_path);
                 free(child_name);
                 free(child_path);
-                append_trace(status, errno);
                 return status;
             }
         }
-        append_trace(status, errno);
-        SUCCESS_REPORT();
+        success(status);
         return 0;
     }
 }
 
-// -----------------------------------------------
-
-DEF_FUNC(deepen, const char *path, int depth) {
+int do_deepen(const char *path, int depth) {
     char *curr_path = (char*)patch_path(path);
     int status;
 
@@ -378,10 +333,9 @@ DEF_FUNC(deepen, const char *path, int depth) {
 
         status = mkdir(child_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
         if (status == -1) {
-            FAILURE_REPORT("MKDIR", child_path);
+            failure(status, "MKDIR", child_path);
             free(child_name);
             free(child_path);
-            append_trace(status, errno);
             return status;
         }
 
@@ -389,96 +343,84 @@ DEF_FUNC(deepen, const char *path, int depth) {
         free(curr_path);
         curr_path = child_path;
     }
-    append_trace(status, errno);
-    SUCCESS_REPORT();
+    success(status);
     return 0;
 }
 
-// -----------------------------------------------
-
-DEF_FUNC(reduce, const char *path) {
+int do_reduce(const char *path) {
     path = patch_path(path);
 
     struct stat file_stat;
     int status = stat(path, &file_stat);
     if (status < 0) {
-        FAILURE_REPORT("STAT", path);
-        append_trace(status, errno);
+        failure(status, "STAT", path);
         return -1;
     }
     if (S_ISREG(file_stat.st_mode)) {
         int status = truncate(path, 0);
         if (status == -1) {
-          FAILURE_REPORT("TRUNCATE", path);
+            failure(status, "TRUNCATE", path);
+        } else {
+            success(status);
         }
-        append_trace(status, errno);
-        SUCCESS_REPORT();
         return status;
     } else if (S_ISDIR(file_stat.st_mode)) {
         char cmd[1024];
         snprintf(cmd, 1024, "rm -rf %s/*", path);
         exec_command(cmd);
-        SUCCESS_REPORT();
+        success(0);
         return 0;
     }
 }
 
-// -----------------------------------------------
-
-DEF_FUNC(write_xattr, const char *path, const char *key, const char *value) {
+int do_write_xattr(const char *path, const char *key, const char *value) {
     path = patch_path(path);
     int status = lsetxattr(path, key, value, strlen(value), XATTR_CREATE);
     if (status == EEXIST) {
         status = lsetxattr(path, key, value, strlen(value), XATTR_REPLACE);
     }
     if (status) {
-        FAILURE_REPORT("WRITE_XATTR", path);
+        failure(status, "WRITE_XATTR", path);
+    } else {
+        success(status);
     }
-    append_trace(status, errno);
-    SUCCESS_REPORT();
     return status;
 }
 
-// -----------------------------------------------
-
-DEF_FUNC(read_xattr, const char *path, const char *key) {
+int do_read_xattr(const char *path, const char *key) {
     path = patch_path(path);
 
     char buf[1024];
     int status = lgetxattr(path, key, buf, 1024);
     if (status == -1) {
-        FAILURE_REPORT("READ_XATTR", path);
+        failure(status, "READ_XATTR", path);
+    } else {
+        success(status);
     }
-    append_trace(status, errno);
-    SUCCESS_REPORT();
-    return 0;
+    return status;
 }
 
-// -----------------------------------------------
-
-DEF_FUNC(statfs, const char *path) {
+int do_statfs(const char *path) {
     path = patch_path(path);
 
     struct statfs buf;
     int status = statfs(path, &buf);
     if (status) {
-        FAILURE_REPORT("STATFS", path);
+        failure(status, "STATFS", path);
+    } else {
+        success(status);
     }
-    append_trace(status, errno);
-    SUCCESS_REPORT();
     return status;
 }
 
-// -----------------------------------------------
-
-DEF_FUNC(mknod, const char *path, mode_t mode, dev_t dev) {
+int do_mknod(const char *path, mode_t mode, dev_t dev) {
     path = patch_path(path);
 
     int status = mknod(path, mode, dev);
     if (status) {
-        FAILURE_REPORT("MKNOD", path);
+        failure(status, "MKNOD", path);
+    } else {
+        success(status);
     }
-    append_trace(status, errno);
-    SUCCESS_REPORT();
     return status;
 }
