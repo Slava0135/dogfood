@@ -1,12 +1,9 @@
-#include "utils.h"
-
-#include <stddef.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <sched.h>
 #include <cstddef>
+#include <cstdio>
+#include <cstdarg>
+#include <cstdlib>
 
+#include "utils.h"
 #include "executor.h"
 
 void* align_alloc(std::size_t size) {

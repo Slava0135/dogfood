@@ -1,23 +1,17 @@
-/* #define _GNU_SOURCE */
-
-#include <assert.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <stddef.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <errno.h>
-#include <dirent.h>
-
+#include <cassert>
+#include <cstring>
+#include <cstdlib>
+#include <cstdio>
+#include <cstddef>
+#include <cerrno>
 #include <string>
 
-#include <sys/mount.h>
+#include <dirent.h>
+#include <unistd.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
-#include <sys/wait.h>
 #include <sys/xattr.h>
 #include <sys/mount.h>
 #include <sys/statfs.h>
