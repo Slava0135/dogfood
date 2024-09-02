@@ -27,7 +27,7 @@ extern char* g_buffers[];
 
 static std::string patch_path(const std::string& path) {
     if (path[0] != '/') {
-        DPRINTF("ERROR: when patching path %s\n", path);
+        DPRINTF("ERROR: when patching path %s\n", path.c_str());
         exit(0);
     }
     return g_workspace + path;
@@ -272,13 +272,13 @@ int do_rename(const char *old_path, const char *new_path) {
     return status;
 }
 
-int do_sync(bool is_last) {
+int do_sync([[maybe_unused]] bool is_last) {
     sync();
     success(0, "SYNC");
     return 0;
 }
 
-int do_fsync(int fd, bool is_last) {
+int do_fsync(int fd, [[maybe_unused]] bool is_last) {
     idx++;
     int status = fsync(fd);
     if (status == -1) {
@@ -320,6 +320,9 @@ int do_enlarge(const char *p, int size) {
         }
         success(status, "ENLARGE");
         return 0;
+    } else {
+        DPRINTF("ERROR: unknown file mode: %d", file_stat.st_mode);
+        return -1;
     }
 }
 
@@ -368,6 +371,9 @@ int do_reduce(const char *p) {
             success(status, "REDUCE");
         }
         return status;
+    } else {
+        DPRINTF("ERROR: unknown file mode: %d", file_stat.st_mode);
+        return -1;
     }
 }
 

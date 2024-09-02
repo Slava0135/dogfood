@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-std=c++17
+CXXFLAGS=-std=c++17 -Wall -Wextra -Werror -pedantic
 
 BUILD=$(CXX) $(CXXFLAGS)
 TESTNAME=test
