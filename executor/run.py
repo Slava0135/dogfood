@@ -6,6 +6,7 @@ import logging
 import subprocess
 import os
 import stat
+import functools
 
 
 log = logging.getLogger()
@@ -152,10 +153,26 @@ def lookup_testcases() -> list[TestCase]:
     return testcases
 
 def run_testcases(systems: list[FileSystemUnderTest], testcases: list[TestCase]):
+    def compare(a: TestCase, b: TestCase):
+        a = a.name
+        b = b.name
+        if a.isnumeric() and b.isnumeric():
+            return int(a) - int(b)
+        elif a.isnumeric():
+            return 1
+        elif b.isnumeric():
+            return -1
+        else:
+            if a > b:
+                return 1
+            elif a < b:
+                return -1
+            else:
+                return 0
     index = 0
-    for tc in testcases:
+    for tc in sorted(testcases, key=functools.cmp_to_key(compare)):
         index += 1
-        log.info(f"running testcase {index}/{len(testcases)}: '{tc.name}'")
+        log.info(f"running testcase '{tc.name}' ({index}/{len(testcases)})")
         for fs in systems:
             log.info(f"testing {fs.name}...")
             fs.setup()
@@ -175,7 +192,7 @@ if __name__ == "__main__":
         systems = lookup_systems()
         testcases = lookup_testcases()
     except Exception as e:
-        log.error(e)
+        log.critical("when initializing runner", exc_info=e)
     else:
         log.info(f"found {len(systems)} filesystems under test: {[s.name for s in systems]}")
         log.info(f"found {len(testcases)} testcases")
@@ -183,7 +200,7 @@ if __name__ == "__main__":
         try:
             run_testcases(systems, testcases)
         except Exception as e:
-            log.error(f"critical error when running testcases, aborting...\n{e}")
+            log.critical(f"when running testcases", exc_info=e)
         else:
-            log.info(f"done!")
+            log.info(f"DONE!")
         log.info(f"found {issues_found} issues")
