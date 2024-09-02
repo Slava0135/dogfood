@@ -316,13 +316,12 @@ int do_enlarge(const char *path, int size) {
         return status;
     } else if (S_ISDIR(file_stat.st_mode)) {
         for (int i = 0; i < size; ++i) {
-            char *child_name = rand_string(10);
-            char *child_path = path_join(path, child_name);
+            auto child_name = rand_string(10);
+            char *child_path = path_join(path, child_name.c_str());
 
             status = mkdir(child_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
             if (status == -1) {
                 failure(status, "MKDIR", child_path);
-                free(child_name);
                 free(child_path);
                 return status;
             }
@@ -338,18 +337,16 @@ int do_deepen(const char *path, int depth) {
     int status;
 
     for (int i = 0; i < depth; ++i) {
-        char *child_name = rand_string(1);
-        char *child_path = path_join(curr_path, child_name);
+        auto child_name = rand_string(1);
+        char *child_path = path_join(curr_path, child_name.c_str());
 
         status = mkdir(child_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
         if (status == -1) {
             failure(status, "MKDIR", child_path);
-            free(child_name);
             free(child_path);
             return status;
         }
 
-        free(child_name);
         free(curr_path);
         curr_path = child_path;
     }

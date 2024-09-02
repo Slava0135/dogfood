@@ -2,6 +2,8 @@
 #include <cstdio>
 #include <cstdarg>
 #include <cstdlib>
+#include <string>
+#include <algorithm>
 
 #include "utils.h"
 #include "executor.h"
@@ -29,24 +31,17 @@ char* path_join(const char *prefix, const char *file_name) {
     return buf;
 }
 
-char* rand_string(std::size_t len) {
-    static char charset[] = "abcdefghijklmnopqrstuvwxyz"
-                            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                            "0123456789";
-    if (!len) {
-        return nullptr;
-    }
-
-    char *buf = (char*)align_alloc(len + 1);
-    if (!buf) {
-        return nullptr;
-    }
-
-    for (std::size_t i = 0; i < len; i++) {
-        int key = rand() % (int) (sizeof(charset) -1);
-        buf[i] = charset[key];
-    }
-
-    buf[len] = '\0';
-    return buf;
+std::string rand_string(std::size_t len) {
+    auto randchar = []() -> char
+    {
+        const char charset[] =
+            "0123456789"
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz";
+        const std::size_t max_index = (sizeof(charset) - 1);
+        return charset[rand() % max_index];
+    };
+    std::string str(len, 0);
+    std::generate_n(str.begin(), len, randchar);
+    return str;
 }
