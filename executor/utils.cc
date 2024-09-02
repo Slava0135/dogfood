@@ -22,8 +22,7 @@ std::string path_join(const std::string& prefix, const std::string& file_name) {
 }
 
 std::string rand_string(std::size_t len) {
-    auto randchar = []() -> char
-    {
+    auto randchar = []() -> char {
         const char charset[] =
             "0123456789"
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
