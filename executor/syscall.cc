@@ -273,6 +273,7 @@ int do_rename(const char *old_path, const char *new_path) {
 }
 
 int do_sync([[maybe_unused]] bool is_last) {
+    idx++;
     sync();
     success(0, "SYNC");
     return 0;
