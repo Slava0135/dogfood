@@ -17,18 +17,8 @@ void* align_alloc(std::size_t size) {
     return ptr;
 }
 
-char* path_join(const char *prefix, const char *file_name) {
-    int len = strlen(prefix) + strlen(file_name) + 3;
-    char *buf = (char*)malloc(len);
-    int ret = snprintf(buf, len, "%s/%s", prefix, file_name);
-    if (ret == len) {
-        free(buf);
-        DPRINTF("ERROR: when joining path\n");
-        return nullptr;
-    } else {
-        buf[ret] = '\0';
-    }
-    return buf;
+std::string path_join(const std::string& prefix, const std::string& file_name) {
+    return prefix + "/" + file_name;
 }
 
 std::string rand_string(std::size_t len) {

@@ -25,18 +25,12 @@ extern const char *g_workspace;
 
 extern char* g_buffers[];
 
-static const char* patch_path(const char *path) {
+static std::string patch_path(const std::string& path) {
     if (path[0] != '/') {
         DPRINTF("ERROR: when patching path %s\n", path);
-        assert(0);
+        exit(0);
     }
-
-    int len = strlen(g_workspace) + strlen(path) + 10;
-    char *result = (char*)malloc(sizeof(char) * len);
-
-    len = snprintf(result, len, "%s%s", g_workspace, path);
-    result[len] = '\0';
-    return result;
+    return g_workspace + path;
 }
 
 static int idx = 0;
@@ -66,7 +60,7 @@ void report_result() {
 
 int do_mkdir(const char *path, mode_t param) {
     idx++;
-    int status = mkdir(patch_path(path), param);
+    int status = mkdir(patch_path(path).c_str(), param);
     if (status == -1) {
         failure(status, "MKDIR", path);
     } else {
@@ -77,7 +71,7 @@ int do_mkdir(const char *path, mode_t param) {
 
 int do_create(const char *path, mode_t param) {
     idx++;
-    int status = creat(patch_path(path), param);
+    int status = creat(patch_path(path).c_str(), param);
     if (status == -1) {
         failure(status, "CREATE", path);
     } else {
@@ -88,7 +82,7 @@ int do_create(const char *path, mode_t param) {
 
 int do_symlink(const char *old_path, const char *new_path) {
     idx++;
-    int status = symlink(patch_path(old_path), patch_path(new_path));
+    int status = symlink(patch_path(old_path).c_str(), patch_path(new_path).c_str());
     if (status == -1) {
         failure2(status, "SYMLINK", old_path, new_path);
     } else {
@@ -99,7 +93,7 @@ int do_symlink(const char *old_path, const char *new_path) {
 
 int do_hardlink(const char *old_path, const char *new_path) {
     idx++;
-    int status = link(patch_path(old_path), patch_path(new_path));
+    int status = link(patch_path(old_path).c_str(), patch_path(new_path).c_str());
     if (status == -1) {
         failure2(status, "HARDLINK", old_path, new_path);
     } else {
@@ -164,29 +158,29 @@ static int remove_dir(const char *path) {
     return r;
 }
 
-int do_remove(const char *path) {
+int do_remove(const char *p) {
     idx++;
-    path = patch_path(path);
+    const std::string path = patch_path(p);
     struct stat file_stat;
     int status = 0;
 
-    status = lstat(path, &file_stat);
+    status = lstat(path.c_str(), &file_stat);
     if (status < 0) {
-        failure(status, "STAT", path);
+        failure(status, "STAT", path.c_str());
         return -1;
     }
 
     if (S_ISDIR(file_stat.st_mode)) {
-        status = remove_dir(path);
+        status = remove_dir(path.c_str());
         if (status) {
-            failure(status, "RMDIR", path);
+            failure(status, "RMDIR", path.c_str());
         } else {
             success(status, "RMDIR");
         }
     } else {
-        status = unlink(path);
+        status = unlink(path.c_str());
         if (status == -1) {
-            failure(status, "UNLINK", path);
+            failure(status, "UNLINK", path.c_str());
         } else {
             success(status, "UNLINK");
         }
@@ -197,7 +191,7 @@ int do_remove(const char *path) {
 
 int do_open(int &fd, const char *path, int param) {
     idx++;
-    fd = open(patch_path(path), param);
+    fd = open(patch_path(path).c_str(), param);
     if (fd == -1) {
         failure(fd, "OPEN", path);
     } else {
@@ -208,7 +202,7 @@ int do_open(int &fd, const char *path, int param) {
 
 int do_open_tmpfile(int &fd, const char *path, int param) {
     idx++;
-    fd = open(patch_path(path), param | O_TMPFILE, S_IRWXU| S_IWUSR | S_IRGRP | S_IROTH);
+    fd = open(patch_path(path).c_str(), param | O_TMPFILE, S_IRWXU| S_IWUSR | S_IRGRP | S_IROTH);
     if (fd == -1) {
         failure(fd, "OPEN_TMPFILE", path);
     } else {
@@ -269,7 +263,7 @@ int do_write(int fd, int buf_id, int size) {
 
 int do_rename(const char *old_path, const char *new_path) {
     idx++;
-    int status = rename(patch_path(old_path), patch_path(new_path));
+    int status = rename(patch_path(old_path).c_str(), patch_path(new_path).c_str());
     if (status == -1) {
         failure2(status, "RENAME", old_path, new_path);
     } else {
@@ -295,21 +289,21 @@ int do_fsync(int fd, bool is_last) {
     return status;
 }
 
-int do_enlarge(const char *path, int size) {
+int do_enlarge(const char *p, int size) {
     idx++;
-    path = patch_path(path);
+    const std::string path = patch_path(p);
 
     struct stat file_stat;
-    int status = stat(path, &file_stat);
+    int status = stat(path.c_str(), &file_stat);
     if (status < 0) {
-        failure(status, "STAT", path);
+        failure(status, "STAT", path.c_str());
         return -1;
     }
 
     if (S_ISREG(file_stat.st_mode)) {
-        status = truncate(path, size * 10);
+        status = truncate(path.c_str(), size * 10);
         if (status == -1) {
-            failure(status, "TRUNCATE", path);
+            failure(status, "TRUNCATE", path.c_str());
         } else {
             success(status, "TRUNCATE");
         }
@@ -317,12 +311,10 @@ int do_enlarge(const char *path, int size) {
     } else if (S_ISDIR(file_stat.st_mode)) {
         for (int i = 0; i < size; ++i) {
             auto child_name = rand_string(10);
-            char *child_path = path_join(path, child_name.c_str());
-
-            status = mkdir(child_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+            auto child_path = path_join(path.c_str(), child_name.c_str());
+            status = mkdir(child_path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
             if (status == -1) {
-                failure(status, "MKDIR", child_path);
-                free(child_path);
+                failure(status, "MKDIR", child_path.c_str());
                 return status;
             }
         }
@@ -331,43 +323,39 @@ int do_enlarge(const char *path, int size) {
     }
 }
 
-int do_deepen(const char *path, int depth) {
+int do_deepen(const char *p, int depth) {
     idx++;
-    char *curr_path = (char*)patch_path(path);
+    std::string curr_path = patch_path(p);
     int status;
 
     for (int i = 0; i < depth; ++i) {
         auto child_name = rand_string(1);
-        char *child_path = path_join(curr_path, child_name.c_str());
-
-        status = mkdir(child_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        auto child_path = path_join(curr_path.c_str(), child_name.c_str());
+        status = mkdir(child_path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
         if (status == -1) {
-            failure(status, "MKDIR", child_path);
-            free(child_path);
+            failure(status, "MKDIR", child_path.c_str());
             return status;
         }
-
-        free(curr_path);
         curr_path = child_path;
     }
     success(status, "DEEPEN");
     return 0;
 }
 
-int do_reduce(const char *path) {
+int do_reduce(const char *p) {
     idx++;
-    path = patch_path(path);
+    const std::string path = patch_path(p);
 
     struct stat file_stat;
-    int status = stat(path, &file_stat);
+    int status = stat(path.c_str(), &file_stat);
     if (status < 0) {
-        failure(status, "STAT", path);
+        failure(status, "STAT", path.c_str());
         return -1;
     }
     if (S_ISREG(file_stat.st_mode)) {
-        int status = truncate(path, 0);
+        int status = truncate(path.c_str(), 0);
         if (status == -1) {
-            failure(status, "TRUNCATE", path);
+            failure(status, "TRUNCATE", path.c_str());
         } else {
             success(status, "TRUNCATE");
         }
@@ -375,7 +363,7 @@ int do_reduce(const char *path) {
     } else if (S_ISDIR(file_stat.st_mode)) {
         int status = std::filesystem::remove_all(path);
         if (status == -1) {
-            failure(status, "REDUCE", path);
+            failure(status, "REDUCE", path.c_str());
         } else {
             success(status, "REDUCE");
         }
@@ -383,56 +371,56 @@ int do_reduce(const char *path) {
     }
 }
 
-int do_write_xattr(const char *path, const char *key, const char *value) {
+int do_write_xattr(const char *p, const char *key, const char *value) {
     idx++;
-    path = patch_path(path);
-    int status = lsetxattr(path, key, value, strlen(value), XATTR_CREATE);
+    const std::string path = patch_path(p);
+    int status = lsetxattr(path.c_str(), key, value, strlen(value), XATTR_CREATE);
     if (status == EEXIST) {
-        status = lsetxattr(path, key, value, strlen(value), XATTR_REPLACE);
+        status = lsetxattr(path.c_str(), key, value, strlen(value), XATTR_REPLACE);
     }
     if (status) {
-        failure(status, "WRITE_XATTR", path);
+        failure(status, "WRITE_XATTR", path.c_str());
     } else {
         success(status, "WRITE_XATTR");
     }
     return status;
 }
 
-int do_read_xattr(const char *path, const char *key) {
+int do_read_xattr(const char *p, const char *key) {
     idx++;
-    path = patch_path(path);
+    const std::string path = patch_path(p);
 
     char buf[1024];
-    int status = lgetxattr(path, key, buf, 1024);
+    int status = lgetxattr(path.c_str(), key, buf, 1024);
     if (status == -1) {
-        failure(status, "READ_XATTR", path);
+        failure(status, "READ_XATTR", path.c_str());
     } else {
         success(status, "READ_XATTR");
     }
     return status;
 }
 
-int do_statfs(const char *path) {
+int do_statfs(const char *p) {
     idx++;
-    path = patch_path(path);
+    const std::string path = patch_path(p);
 
     struct statfs buf;
-    int status = statfs(path, &buf);
+    int status = statfs(path.c_str(), &buf);
     if (status) {
-        failure(status, "STATFS", path);
+        failure(status, "STATFS", path.c_str());
     } else {
         success(status, "STATFS");
     }
     return status;
 }
 
-int do_mknod(const char *path, mode_t mode, dev_t dev) {
+int do_mknod(const char *p, mode_t mode, dev_t dev) {
     idx++;
-    path = patch_path(path);
+    const std::string path = patch_path(p);
 
-    int status = mknod(path, mode, dev);
+    int status = mknod(path.c_str(), mode, dev);
     if (status) {
-        failure(status, "MKNOD", path);
+        failure(status, "MKNOD", path.c_str());
     } else {
         success(status, "MKNOD");
     }
