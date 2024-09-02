@@ -20,7 +20,8 @@
     } while(0)
 
 #define NR_BUF 16
-#define SIZE_PER_BUF 4096*20
+#define ALIGN 4096
+#define SIZE_PER_BUF ALIGN*20
 
 /*
  * When USE_TRACE is set, the return code of each syscall will be logged.
