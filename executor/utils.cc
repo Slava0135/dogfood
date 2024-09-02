@@ -15,42 +15,6 @@ void* align_alloc(std::size_t size) {
     return ptr;
 }
 
-const char* str_concat(const char *str_1, const char *str_2) {
-    if (!str_1) {
-        return strdup(str_2);
-    }
-    if (!str_2) {
-        return strdup(str_1);
-    }
-
-    char *new_str = (char*)malloc(strlen(str_1) + strlen(str_2) + 1);
-    if(new_str == nullptr){
-        DPRINTF("ERROR: malloc failed\n");
-        return nullptr;
-    }
-    //
-    // ensures the memory is an empty string
-    //
-    new_str[0] = '\0';
-
-    strcat(new_str, str_1);
-    strcat(new_str, str_2);
-    return new_str;
-}
-
-void str_trim(char *s) {
-    if (!s) {
-        return;
-    }
-    int pos = strlen(s) - 1;
-    while (pos >= 0 && (s[pos] == ' ' || s[pos] == '\n')) {
-        s[pos] = '\0';
-        pos -= 1;
-    }
-}
-
-// -----------------------------------------------
-
 char* path_join(const char *prefix, const char *file_name) {
     int len = strlen(prefix) + strlen(file_name) + 3;
     char *buf = (char*)malloc(len);
@@ -85,24 +49,4 @@ char* rand_string(std::size_t len) {
 
     buf[len] = '\0';
     return buf;
-}
-
-const char* exec_command(const char *cmd) {
-
-    char *result = nullptr;
-    char buf[128];
-
-    FILE* fp = popen(cmd, "r");
-    if (!fp) {
-        DPRINTF("ERROR: when executing `%s`\n", cmd);
-        exit(1);
-    }
-
-    while (fgets(buf, sizeof(buf), fp) != nullptr) {
-        result = (char*)str_concat(result, buf);
-    }
-    pclose(fp);
-
-    str_trim(result);
-    return result;
 }

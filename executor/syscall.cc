@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cerrno>
 #include <string>
+#include <filesystem>
 
 #include <dirent.h>
 #include <unistd.h>
@@ -375,11 +376,13 @@ int do_reduce(const char *path) {
         }
         return status;
     } else if (S_ISDIR(file_stat.st_mode)) {
-        char cmd[1024];
-        snprintf(cmd, 1024, "rm -rf %s/*", path);
-        exec_command(cmd);
-        success(0, "REDUCE");
-        return 0;
+        int status = std::filesystem::remove_all(path);
+        if (status == -1) {
+            failure(status, "REDUCE", path);
+        } else {
+            success(status, "REDUCE");
+        }
+        return status;
     }
 }
 
