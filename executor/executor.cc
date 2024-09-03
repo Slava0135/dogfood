@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
         fprintf(stdout, "> Make dir %s\n", g_workspace);
     }
 
-    for (int i = 0; i < NR_BUF; ++i) {
+    for (std::size_t i = 0; i < NR_BUF; ++i) {
         char *buf = (char*)align_alloc(SIZE_PER_BUF);
         if (!buf) {
             DPRINTF("ERROR: malloc failure\n");

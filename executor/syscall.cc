@@ -222,10 +222,10 @@ int do_close(int fd) {
     return status;
 }
 
-int do_read(int fd, int buf_id, int size) {
+int do_read(int fd, std::size_t buf_id, std::size_t size) {
     idx++;
-    assert(0 <= buf_id && buf_id < NR_BUF);
-    assert(0 <= size && size <= SIZE_PER_BUF);
+    assert(buf_id < NR_BUF);
+    assert(size <= SIZE_PER_BUF);
 
     char *buf = g_buffers[buf_id];
     if (!buf) {
@@ -243,10 +243,10 @@ int do_read(int fd, int buf_id, int size) {
     return 0;
 }
 
-int do_write(int fd, int buf_id, int size) {
+int do_write(int fd, std::size_t buf_id, std::size_t size) {
     idx++;
-    assert(0 <= buf_id && buf_id < NR_BUF);
-    assert(0 <= size && size <= SIZE_PER_BUF);
+    assert(buf_id < NR_BUF);
+    assert(size <= SIZE_PER_BUF);
 
     char *buf = g_buffers[buf_id];
     int nr = 0;
