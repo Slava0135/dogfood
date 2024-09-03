@@ -1,5 +1,7 @@
 # Dogfood for Differential Testing
 
+Dogfood is a prototype tool to generate workloads and test filesystems.
+
 This fork aims to run sequential scenario for Dogfood without QEMU (see original description below) and use it for "Differential Testing".
 
 C++ files in `/executor` were taken from provided Docker image but were heavily refactored.
