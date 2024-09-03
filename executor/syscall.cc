@@ -102,60 +102,47 @@ int do_hardlink(const char *old_path, const char *new_path) {
     return status;
 }
 
-static int remove_dir(const char *path) {
-    DIR *d = opendir(path);
-    std::size_t path_len = strlen(path);
-    int r = -1;
+static int remove_dir(const char *p) {
+    const std::string dir_path(p);
+    DIR *d = opendir(dir_path.c_str());
+    int status = -1;
 
     if (d) {
         struct dirent *p;
-        r = 0;
+        status = 0;
 
-        while (!r && (p = readdir(d))) {
-            int r2 = -1;
-            char *buf;
-            std::size_t len;
-
-            /* Skip the names "." and ".." as we don't want to recurse on them.
-             */
+        while (!status && (p = readdir(d))) {
+            // Skip the names "." and ".." as we don't want to recurse on them.
             if (!strcmp(p->d_name, ".") || !strcmp(p->d_name, "..")) {
                 continue;
             }
 
-            len = path_len + strlen(p->d_name) + 2;
-            buf = (char*)malloc(len);
+            struct stat statbuf;
+            int status_in_dir = -1;            
+            const std::string file_path = path_join(dir_path, p->d_name);
 
-            if (buf) {
-                struct stat statbuf;
-
-                snprintf(buf, len, "%s/%s", path, p->d_name);
-
-                if (!lstat(buf, &statbuf)) {
-                    if (S_ISDIR(statbuf.st_mode)) {
-                        r2 = remove_dir(buf);
-                    } else {
-                        r2 = unlink(buf);
-                        if (r2) {
-                            DPRINTF("ERROR: unlink failure %s\n", buf);
-                        }
+            if (!lstat(file_path.c_str(), &statbuf)) {
+                if (S_ISDIR(statbuf.st_mode)) {
+                    status_in_dir = remove_dir(file_path.c_str());
+                } else {
+                    status_in_dir = unlink(file_path.c_str());
+                    if (status_in_dir) {
+                        DPRINTF("ERROR: unlink failure %s\n", file_path.c_str());
                     }
                 }
-                free(buf);
             }
-            r = r2;
+            status = status_in_dir;
         }
         closedir(d);
     }
 
-    if (!r) {
-        r = rmdir(path);
+    if (!status) {
+        status = rmdir(dir_path.c_str());
+    } else {
+        DPRINTF("ERROR: rmdir failure %s\n", dir_path.c_str());
     }
 
-    if (r) {
-        DPRINTF("ERROR: rmdir failure %s\n", path);
-    }
-
-    return r;
+    return status;
 }
 
 int do_remove(const char *p) {
