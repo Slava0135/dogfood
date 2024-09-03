@@ -239,8 +239,8 @@ int do_read(int fd, std::size_t buf_id, std::size_t size) {
         return -1;
     } else {
         success(nr, "READ");
+        return nr;
     }
-    return 0;
 }
 
 int do_write(int fd, std::size_t buf_id, std::size_t size) {
@@ -249,16 +249,14 @@ int do_write(int fd, std::size_t buf_id, std::size_t size) {
     assert(size <= SIZE_PER_BUF);
 
     char *buf = g_buffers[buf_id];
-    int nr = 0;
-    for (int i = 0; i < 10; ++i) {
-        nr = write(fd, buf, size);
-        if (nr == -1) {
-            failure(nr, "WRITE", std::to_string(fd).c_str());
-            return -1;
-        }
+    int nr  = write(fd, buf, size);
+    if (nr == -1) {
+        failure(nr, "WRITE", std::to_string(fd).c_str());
+        return -1;
+    } else {
+        success(nr, "WRITE");
+        return nr;
     }
-    success(nr, "WRITE");
-    return 0;
 }
 
 int do_rename(const char *old_path, const char *new_path) {
