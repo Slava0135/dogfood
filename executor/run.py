@@ -50,7 +50,7 @@ class TestCase:
             log.warning(f"different test traces found!")
             issues_found += 1
             for fs, output in self.traces.items():
-                with open(f"{self.name}.{fs}.trace", "w") as file:
+                with open(f"{self.name}.{fs}.trace.csv", "w") as file:
                     file.write(output)
         self.outputs.clear()
         self.traces.clear()
@@ -103,7 +103,7 @@ class FileSystemUnderTest:
         )
         tc.outputs[self.name] = result.stdout + result.stderr
         try:
-            with open('trace.dat') as f:
+            with open('trace.csv') as f:
                 tc.traces[self.name] = f.read()
         except:
             log.warning(f"trace not found")

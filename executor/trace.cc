@@ -19,7 +19,7 @@ void append_trace_impl(int idx, const char* cmd, int ret_code, int err) {
 void dump_trace() {
     fprintf(stdout, "> Dumping trace...\n");
 
-    FILE *trace_dump_fp = fopen("./trace.dat", "w");
+    FILE *trace_dump_fp = fopen("./trace.csv", "w");
     if (!trace_dump_fp) {
         DPRINTF("ERROR: when opening trace dump file\n");
         return;
