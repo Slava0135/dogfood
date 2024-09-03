@@ -1,5 +1,7 @@
 # Released under MIT License
 
+Copyright (c) 2024 Vyacheslav Kovalevsky
+
 Dogfood: A workload generation tool for testing file systems
 Copyright © 2020 Dongjie Chen (midwinter1993@gmail.com)
 

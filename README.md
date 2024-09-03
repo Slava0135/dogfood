@@ -1,3 +1,70 @@
+# Dogfood for Differential Testing
+
+This fork aims to run sequential scenario for Dogfood without QEMU (see original description below) and use it for "Differential Testing".
+
+C++ files in `/executor` were taken from provided Docker image but were heavily refactored.
+
+## Install
+
+Create Python virtual environment and install dependencies from `requirements.txt`
+
+Tested on Python 3.12
+
+## Usage
+
+```sh
+cd py-code
+./GenSeq
+```
+
+This will generate and compile source files in `workspace/C-output/<TESTDIR>`
+
+`*.c` files are generated source for a test, linked with executor from `/executor`
+
+`*.out` are compiled binaries. They can be run separately: use `./<TESTNAME>.out <WORKSPACE_DIR>` to execute syscalls in WORKSPACE_DIR. Directory will be created if not existed.
+
+`run.py` is runner that executes all tests from the TESTDIR. Use `./run.py`. This will write logs into console during testing. Logs are also written into `run.log`.
+
+For each filesystem test trace is generated in CSV format. Traces and outputs are compared after each test and are saved if a difference in behavior (result code / errno) was found, see "Differential Testing".
+
+Compare using diff: `diff <TESTNAME>.ext4.trace.csv <TESTNAME>.btrfs.trace.csv`
+
+## Adding new filesystem
+
+In `/wrappers` there are scripts for setting each filesystem. Filesystems are detected dynamically when running `run.py`. Scripts can be written in Bash, Python, Perl or anything really.
+
+Each filesystem must have `setup-<FSNAME>` script that must print into stdout directory with mounted filesystem (and nothing else!) after it was set up.
+
+Each filesystem must have `teardown-<FSNAME>` script that accepts string/path of the directory with previously mounted filesystem, tearing it down so setup script can be run again.
+
+Right now, only scripts for `ext4` are provided, those can be used as reference.
+
+## Configuration
+
+In `config.py` edit `SeqConfig` class.
+
+Most notable:
+
+`NR_SEGMENT * NR_TESTCASE_PER_PACKAGE` = number of syscalls in every generated test. More info in original work.
+
+`NR_TESTCASE_PER_PACKAGE` = number of tests generated.
+
+You can also configure probability of each command (or disable altogether by setting to zero). Some of them are not working in current reimplementation.
+
+## Results
+
+This project is WIP and no bugs/disruptances were found yet.
+
+If you aim for finding Linux kernel crashes then better use original work, because the runner will crash too.
+
+Some false positives are expected, because more than 1 correct behavior can exist. So far this happens with `read`/`write` calls when multiple file descriptors are open.
+
+## Copyright
+
+Original work by Dongjie Chen (midwinter1993)
+
+---
+
 [![DOI](https://zenodo.org/badge/234754374.svg)](https://zenodo.org/badge/latestdoi/234754374)
 
 # Artifact evaluation for Dogfood
