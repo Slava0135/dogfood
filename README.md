@@ -10,7 +10,9 @@ C++ files in `/executor` were taken from provided Docker image but were heavily 
 
 Create Python virtual environment and install dependencies from `requirements.txt`
 
-Tested on Python 3.12
+Install GCC and Make.
+
+Tested on Python 3.12 and GCC 14.2
 
 ## Usage
 
@@ -47,7 +49,7 @@ In `config.py` edit `SeqConfig` class.
 
 Most notable:
 
-`NR_SEGMENT * NR_TESTCASE_PER_PACKAGE` = number of syscalls in every generated test. More info in original work.
+`NR_SEGMENT * LENGTH_PER_SEGMENT` = number of syscalls in every generated test. More info in original work.
 
 `NR_TESTCASE_PER_PACKAGE` = number of tests generated.
 
