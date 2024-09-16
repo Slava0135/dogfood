@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+if getopts "f" _; then
+    FORCE=true
+    shift 1
+else
+    FORCE=false
+fi
+
+: "${FSNAME:="fstest"}"
+DEVICE="/dev/ram0"
+RD_SIZE="1000000"
+MOUNT_POINT="/mnt/xfs/$FSNAME"
+
+function log {
+    MSG="$(date "+%Y-%m-%d %H:%M:%S") $1"
+    echo "$MSG" >> xfs.log 2>&1
+    echo "$MSG" >&2
+}
+
+function tryexit {
+    if ! $FORCE; then
+        exit "$1"
+    fi
+}
+
+log "[INFO] setting up filesystem at $MOUNT_POINT..."
+
+if ! RESULT=$(mkdir -p "$MOUNT_POINT" 2>&1); then
+    log "[ERROR] when making directory: $RESULT"
+    tryexit 1
+fi
+
+if ! RESULT=$(modprobe brd rd_nr=1 rd_size=$RD_SIZE 2>&1); then
+    log "[ERROR] when loading module: $RESULT"
+    tryexit 2
+fi
+
+if ! RESULT=$(mkfs.xfs $DEVICE 2>&1); then
+    log "[ERROR] when creating FS: $RESULT"
+    tryexit 3
+fi
+
+if ! RESULT=$(mount -t xfs $DEVICE "$MOUNT_POINT" 2>&1); then
+    log "[ERROR] when mounting FS: $RESULT"
+    tryexit 4
+fi
+
+echo "$MOUNT_POINT"
