@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+if getopts "f" _; then
+    FORCE=true
+    shift 1
+else
+    FORCE=false
+fi
+
+: "${FSNAME:="fstest"}"
+DEVICE="/dev/ram0"
+RD_SIZE="1000000"
+MOUNT_POINT="/mnt/f2fs/$FSNAME"
+
+function log {
+    MSG="$(date "+%Y-%m-%d %H:%M:%S") $1"
+    echo "$MSG" >> f2fs.log 2>&1
+    echo "$MSG" >&2
+}
+
+function tryexit {
+    if ! $FORCE; then
+        exit "$1"
+    fi
+}
+
+log "[INFO] setting up filesystem at $MOUNT_POINT..."
+
+if ! RESULT=$(mkdir -p "$MOUNT_POINT" 2>&1); then
+    log "[ERROR] when making directory: $RESULT"
+    tryexit 1
+fi
+
+if ! RESULT=$(modprobe brd rd_nr=1 rd_size=$RD_SIZE 2>&1); then
+    log "[ERROR] when loading module: $RESULT"
+    tryexit 2
+fi
+
+if ! RESULT=$(mkfs.f2fs -O extra_attr,inode_checksum,sb_checksum,compression $DEVICE 2>&1); then
+    log "[ERROR] when creating FS: $RESULT"
+    tryexit 3
+fi
+
+if ! RESULT=$(mount -t f2fs -o compress_algorithm=zstd:6,compress_chksum,atgc,gc_merge,lazytime $DEVICE "$MOUNT_POINT" 2>&1); then
+    log "[ERROR] when mounting FS: $RESULT"
+    tryexit 4
+fi
+
+echo "$MOUNT_POINT"

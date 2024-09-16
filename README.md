@@ -41,7 +41,7 @@ Each filesystem must have `setup-<FSNAME>` script that must print into stdout di
 
 Each filesystem must have `teardown-<FSNAME>` script that accepts string/path of the directory with previously mounted filesystem, tearing it down so setup script can be run again.
 
-Right now, only scripts for `ext4` are provided, those can be used as reference.
+Right now, only scripts for `ext4` and `f2fs` are provided, those can be used as reference.
 
 ## Configuration
 
