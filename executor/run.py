@@ -153,7 +153,7 @@ def lookup_testcases() -> list[TestCase]:
         testcases.append(TestCase(name, exe))
     return testcases
 
-def run_testcases(systems: list[FileSystemUnderTest], testcases: list[TestCase], start: int | None, end: int | None):
+def run_testcases(systems: list[FileSystemUnderTest], testcases: list[TestCase], first: int | None, last: int | None):
     def compare(a: TestCase, b: TestCase):
         a = a.name
         b = b.name
@@ -172,7 +172,7 @@ def run_testcases(systems: list[FileSystemUnderTest], testcases: list[TestCase],
                 return 0
     index = 0
     testcases = [tc for tc in sorted(testcases, key=functools.cmp_to_key(compare))
-                 if (not tc.name.isnumeric()) or (not start or int(tc.name) >= start) and (not end or int(tc.name) <= end)]
+                 if (not tc.name.isnumeric()) or (not first or int(tc.name) >= first) and (not last or int(tc.name) <= last)]
     for tc in sorted(testcases, key=functools.cmp_to_key(compare)):
         index += 1
         log.info(f"running testcase '{tc.name}' ({index}/{len(testcases)})")
@@ -192,8 +192,8 @@ def run_testcases(systems: list[FileSystemUnderTest], testcases: list[TestCase],
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser("Run testcases.")
-    parser.add_argument('--start', help="First testcase to run. (inclusive)", type=int)
-    parser.add_argument('--end', help="Last testcase to run. (inclusive)", type=int)
+    parser.add_argument('--from', help="First testcase to run. (inclusive)", type=int)
+    parser.add_argument('--to', help="Last testcase to run. (inclusive)", type=int)
     args = parser.parse_args()
 
     log.info("initializing runner...")
@@ -207,7 +207,7 @@ if __name__ == "__main__":
         log.info(f"found {len(testcases)} testcases")
         log.info(f"running testcases...")
         try:
-            run_testcases(systems, testcases, getattr(args, "start", None), getattr(args, "end", None))
+            run_testcases(systems, testcases, getattr(args, "from", None), getattr(args, "to", None))
         except Exception as e:
             log.critical(f"when running testcases", exc_info=e)
         else:
