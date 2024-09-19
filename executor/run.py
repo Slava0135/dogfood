@@ -44,15 +44,21 @@ class TestCase:
         if len(set([len(x.splitlines()) for x in self.outputs.values()])) > 1:
             log.warning(f"different test outputs found!")
             issues_found += 1
+            groups = dict()
             for fs, output in self.outputs.items():
+                groups[output] = groups.get(output, []) + [fs]
                 with open(f"{self.name}.{fs}.output", "w") as file:
                     file.write(output)
+            log.warning(f"equivalent outputs: {list(groups.values())}")
         if len(set(self.traces.values())) > 1:
             log.warning(f"different test traces found!")
             issues_found += 1
+            groups = dict()
             for fs, output in self.traces.items():
+                groups[output] = groups.get(output, []) + [fs]
                 with open(f"{self.name}.{fs}.trace.csv", "w") as file:
                     file.write(output)
+            log.warning(f"equivalent traces: {list(groups.values())}")
         self.outputs.clear()
         self.traces.clear()
 
