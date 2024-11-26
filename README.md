@@ -33,6 +33,9 @@ For each filesystem test trace is generated in CSV format. Traces and outputs ar
 
 Compare using diff: `diff <TESTNAME>.ext4.trace.csv <TESTNAME>.btrfs.trace.csv`
 
+Optionally, you can provide an executable file named `asfs` to testcase directory, to compare filesystem states (via hashes).
+[Implementation TBD]
+
 ## Adding new filesystem
 
 In `/wrappers` there are scripts for setting each filesystem. Filesystems are detected dynamically when running `run.py`. Scripts can be written in Bash, Python, Perl or anything really.
